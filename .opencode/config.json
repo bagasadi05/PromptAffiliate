@@ -1,0 +1,39 @@
+{
+  "mode": "ensemble_swarm",
+  "auth": {
+    "type": "opencode_cloud",
+    "token_env": "OPENCODE_AUTH_TOKEN"
+  },
+  "workflow_rules": {
+    "planning": "google/gemini-3-pro",
+    "complex_logic": "anthropic/claude-3-opus-4.6",
+    "refactoring": "anthropic/claude-3-opus-4.6",
+    "boilerplate": "openai/codex-5.3",
+    "testing": "openai/codex-5.3",
+    "review": "google/gemini-3-pro",
+    "terminal_commands": "openai/codex-5.3"
+  },
+  "models": {
+    "google": {
+      "provider": "opencode_gateway",
+      "model_id": "gemini-3-pro",
+      "specialization": "architecture, context-analysis, security-audit"
+    },
+    "anthropic": {
+      "provider": "opencode_gateway",
+      "model_id": "claude-3-opus-4.6",
+      "specialization": "complex-logic, creativity, deep-reasoning"
+    },
+    "openai": {
+      "provider": "opencode_gateway",
+      "model_id": "codex-5.3",
+      "specialization": "speed, testing, tooling, scripting"
+    }
+  },
+  "auto_switching": true,
+  "system": {
+    "editor_integration": true,
+    "terminal_integration": true,
+    "context_window_strategy": "adaptive"
+  }
+}
