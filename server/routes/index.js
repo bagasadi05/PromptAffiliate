@@ -2,13 +2,10 @@ import { enforceOpencodeAuth } from '../lib/auth.js';
 import { handleGenerate } from '../controllers/generateController.js';
 import { handleGenerateTitle } from '../controllers/titleController.js';
 import {
+    handleGrokVideoStatus,
     handleGenerateGrokVideoPrompt,
     handleStartGrokVideoGeneration,
-import {
-        handleGrokVideoStatus,
-        handleGenerateGrokVideoPrompt,
-        handleStartGrokVideoGeneration
-    } from '../controllers/grokController.js';
+} from '../controllers/grokController.js';
 import { handleGrokPiImage, handleGrokPiVideo } from '../controllers/grokPiController.js';
 import { createGrokPiJob, getGrokPiJobStatus, cancelGrokPiJob } from '../controllers/grokpiJobController.js';
 import { handleAnalyzePreset, handleAnalyzeProduct } from '../controllers/analyzeController.js';
