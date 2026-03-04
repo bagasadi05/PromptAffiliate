@@ -18,7 +18,11 @@ export function fileToBase64(file) {
  * @returns {string} Raw base64 string
  */
 export function extractBase64(dataUrl) {
-    return dataUrl.split(',')[1] || '';
+    if (typeof dataUrl !== 'string' || !dataUrl) return '';
+    if (!dataUrl.startsWith('data:')) return dataUrl;
+    const commaIndex = dataUrl.indexOf(',');
+    if (commaIndex < 0) return '';
+    return dataUrl.slice(commaIndex + 1);
 }
 
 export default fileToBase64;

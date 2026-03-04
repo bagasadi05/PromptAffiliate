@@ -3,6 +3,7 @@
  * Single source of truth to prevent drift between the two.
  */
 export const DEFAULT_OPTIONS = {
+    productName: '',
     outputLanguage: 'EN',
     subjectDescription: '',
     creativity: 85,
@@ -28,4 +29,10 @@ export const DEFAULT_OPTIONS = {
     microExpressions: 'auto',
     productInteraction: '',
     renderQuality: '4k',
+    // Affiliate Intelligence Options
+    platformTarget: 'tiktok',
+    conversionGoal: 'purchase',
+    psychologyTrigger: 'auto',
+    hookStrength: 'medium',
+    hookFormula: null,
 };

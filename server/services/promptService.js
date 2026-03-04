@@ -12,7 +12,7 @@ YOUR FOCUS IS EXCLUSIVELY:
 5. FABRIC PHYSICS: How clothes, accessories, and hair/hijab respond to movement — inertia, drape, swing, wrinkle, stretch.
 6. VOICE/DIALOGUE: If voice is requested, write compelling TikTok-native dialogue in the specified language. For affiliate content: hooks, product highlights, CTA, emotional triggers.
 7. CINEMATIC QUALITY: Integrate naturally — "film grain", "motion blur 180° shutter", "shallow DOF", "handheld micro-shake", "lens breathing", "4K RAW 24fps".
-8. SCENE TRANSITIONS: End each scene with a natural cut point (beat hit, pose freeze, whip-pan, motivated movement).
+8. SCENE TRANSITIONS & CONTINUITY: Ensure strict visual and narrative continuity between scenes. The environment, subject position, and lighting must logically connect from the end of one scene to the start of the next to prevent disjointed jumps. End each scene with a natural transition (match cut, motivated movement, whip-pan).
 9. ANTI-ARTIFACTS: Avoid descriptions that cause: extra fingers, clothing teleportation, background warping, temporal flicker, duplicate limbs, floating body parts.
 10. FORMAT: UPPERCASE scene headers. Each scene = ONE rich paragraph minimum 60 words. DO NOT describe the subject's face, eyes, skin color, or facial features.`;
 
@@ -21,12 +21,57 @@ const LANGUAGE_LABELS = {
   ID: 'Indonesian (Bahasa Indonesia)',
 };
 
+
 const CAMERA_VOCAB = {
-  'extreme close': { lens: '85mm macro', aperture: 'f/1.4', movement: 'static tripod with subtle rack focus', framing: 'face or hands filling frame, extreme shallow DOF' },
-  close: { lens: '85mm', aperture: 'f/1.8', movement: 'gentle handheld with stabilization', framing: 'head-to-chest frame, bokeh background separation' },
-  medium: { lens: '50mm', aperture: 'f/2.8', movement: 'steadicam or smooth handheld', framing: 'waist-up framing, subject center-weighted' },
-  wide: { lens: '35mm', aperture: 'f/4', movement: 'dolly or slight crane', framing: 'full body with environment context, rule-of-thirds' },
-  'full-body': { lens: '24mm', aperture: 'f/5.6', movement: 'wide steadicam orbit or static tripod', framing: 'full body head-to-toe with floor and ceiling visible' },
+  'extreme close': {
+    lens: '85mm–100mm macro',
+    aperture: 'f/1.4–f/1.8',
+    movement: 'static tripod with micro rack-focus pull — 2cm reframe max',
+    framing: 'subject detail fills 80%+ of frame. Creamy bokeh at f/1.4. Visible skin pores, fabric thread, product texture. Ideal for ASMR and product detail hooks.',
+    affiliateUse: 'Product texture reveal, ingredient close-up, reaction micro-expression capture'
+  },
+  close: {
+    lens: '85mm',
+    aperture: 'f/1.8–f/2.0',
+    movement: 'gentle handheld with in-body stabilization — subtle 3-axis micro-shake',
+    framing: 'head-to-chest frame, bokeh background separation at f/1.8, catch-light visible in eyes, product interaction in lower frame',
+    affiliateUse: 'Testimonial reaction, emotional connection, before/after face reveal'
+  },
+  medium: {
+    lens: '50mm',
+    aperture: 'f/2.8–f/3.5',
+    movement: 'steadicam or Ronin-stabilized handheld — smooth floating motion',
+    framing: 'waist-up framing, subject & product both visible, environment hints in background at f/2.8',
+    affiliateUse: 'Tutorial demo, talking-head review, product interaction showcase'
+  },
+  wide: {
+    lens: '35mm',
+    aperture: 'f/4.0–f/5.6',
+    movement: 'slow tracking dolly or gentle crane — reveals environment with subject',
+    framing: 'full body with environmental context, rule-of-thirds offset, leading space, lifestyle storytelling',
+    affiliateUse: 'Day-in-life integration, unboxing reveal, lifestyle aspirational shots'
+  },
+  'full-body': {
+    lens: '24mm–28mm',
+    aperture: 'f/5.6',
+    movement: 'wide steadicam orbit or static locked-off tripod',
+    framing: 'full body head-to-toe visible, floor-to-ceiling breathing room, outfit fully readable, dynamic movement showcase',
+    affiliateUse: 'Fashion try-on, dance/music affiliate, full outfit showcase'
+  },
+  overhead: {
+    lens: '35mm–50mm',
+    aperture: 'f/4.0',
+    movement: 'static overhead tripod or jib arm descend',
+    framing: 'top-down bird-eye view, flat-lay aesthetic, product arrangement hero shot',
+    affiliateUse: 'Flat-lay product layout, unboxing top-down, food/beauty aesthetic'
+  },
+  macro: {
+    lens: '100mm macro',
+    aperture: 'f/2.8 macro',
+    movement: 'ultra-slow push-in 0.5cm/sec on a macro rail',
+    framing: 'extreme texture detail — product surface, fabric weave, ingredient texture fills entire frame',
+    affiliateUse: 'Premium product texture reveal, skincare ingredient, food macro'
+  },
 };
 
 // ── Cinematic Product Hook — Camera Movement Vocabulary ──
@@ -69,17 +114,214 @@ const RENDER_QUALITY_MAP = {
 const CINEMATIC_NEGATIVE_PROMPT = 'morphed fingers, extra limbs, distorted text, flat lighting, cartoonish, plastic skin, unnatural movement, jitter, extra fingers, clothing teleportation, outfit color change, background warping, temporal flicker, duplicate limbs, floating body parts, uncanny valley expression, AI watermark, over-smoothed skin, CGI-perfect lighting, frozen static fabric';
 
 const LIGHTING_VOCAB = {
-  'soft daylight': { temp: '5600K', direction: 'overhead diffused', shadow: 'soft wrapping shadows, low contrast', mood: 'clean, natural, editorial' },
-  'warm indoor': { temp: '2700K–3200K tungsten', direction: 'overhead pendant + side table lamp', shadow: 'warm soft shadows, cozy fill', mood: 'intimate, cozy, homey' },
-  'neon night': { temp: 'mixed 2700K–8000K RGB', direction: 'multi-directional neon signage + colored gels', shadow: 'hard geometric shadows with color spill', mood: 'energetic, nightlife, vibrant' },
-  'golden hour': { temp: '3200K warm amber', direction: '15° above horizon from camera-left', shadow: 'long warm shadows, rim-lit hair/shoulders', mood: 'romantic, warm, nostalgic' },
-  'studio ring light': { temp: '5000K neutral', direction: 'frontal ring light at camera axis', shadow: 'minimal shadow, catch-light ring in eyes', mood: 'beauty, clean, influencer-style' },
-  'dramatic shadow': { temp: '4000K', direction: 'single hard key from 45° camera-right', shadow: 'deep contrast, half-face shadow, chiaroscuro', mood: 'intense, moody, cinematic noir' },
-  // Cinematic Product Hook — Pro-Level Lighting
-  'cinematic rim': { temp: '4500K–5600K', direction: 'strong backlight rimming subject silhouette + subtle fill from front', shadow: 'edge-lit separation, dramatic rim highlight on jawline and shoulders', mood: 'cinematic, premium, high-end product' },
-  'rembrandt': { temp: '3800K–4200K warm', direction: '45° key light from camera-left creating triangle highlight under eye', shadow: 'classic Rembrandt triangle on cheek, deep sculpted shadows', mood: 'artistic, dramatic, portrait-grade' },
-  'volumetric': { temp: '5000K–5600K neutral', direction: 'side-angled light with visible volumetric rays through haze/dust particles', shadow: 'god-ray shafts, atmospheric depth, particles catching light', mood: 'ethereal, cinematic, atmospheric storytelling' },
-  'product spotlight': { temp: '5200K daylight balanced', direction: 'overhead spot + reflector fill, tight beam on product zone', shadow: 'focused light pool with soft falloff, dark surrounding negative space', mood: 'luxury, focused attention, e-commerce hero' },
+  'soft daylight': {
+    temp: '5600K daylight balanced',
+    direction: 'overhead large diffused source (8x8 silk or open sky)',
+    shadow: 'soft wrapping shadows, low contrast ratio 2:1, fill light from reflector',
+    mood: 'clean, natural, editorial, trustworthy',
+    productEffect: 'Product colors render accurately, shadows are soft and non-distracting, skin appears natural',
+    affiliateBest: 'Review, tutorial, honest testimonial'
+  },
+  'warm indoor': {
+    temp: '2700K–3200K tungsten',
+    direction: 'overhead pendant lamp + side table lamp fill, 3200K LED panel supplement',
+    shadow: 'warm soft shadows, shadow ratio 3:1, cozy diffused fill from white walls',
+    mood: 'intimate, cozy, homey, trustworthy lifestyle',
+    productEffect: 'Products glow with warm amber cast, creates aspirational home-use context',
+    affiliateBest: 'Day-in-life, storytelling, skincare routine'
+  },
+  'neon night': {
+    temp: 'mixed 2700K–8000K RGB gels',
+    direction: 'multi-directional neon signage + colored gels from left/right, low key ambient',
+    shadow: 'hard geometric colored shadows, strong color spill, 6:1 contrast ratio',
+    mood: 'energetic, nightlife, vibrant, youth-culture',
+    productEffect: 'Product takes on bold color cast, edgy premium feel, high visual contrast',
+    affiliateBest: 'Fashion, beauty, Gen-Z products, flash sale'
+  },
+  'golden hour': {
+    temp: '2700K–3200K warm amber',
+    direction: '15° above horizon from camera-left, mimicking magic hour sun angle',
+    shadow: 'long directional warm shadows, strong rim light on hair and shoulders, 4:1 ratio',
+    mood: 'romantic, warm, nostalgic, aspirational beauty',
+    productEffect: 'Products gain warm aspirational glow, skin looks golden and healthy',
+    affiliateBest: 'Skincare, beauty, lifestyle, fashion'
+  },
+  'studio ring light': {
+    temp: '5000K–5500K neutral white',
+    direction: 'frontal ring light at camera axis, 24" ring at 1m distance',
+    shadow: 'near-zero shadow, perfect catch-light ring visible in eyes, flat beauty lighting',
+    mood: 'beauty, clean, influencer-style, high-key commercial',
+    productEffect: 'Products appear clean and clinical, highlights flat product label and packaging',
+    affiliateBest: 'Makeup demo, skincare tutorial, influencer talking-head'
+  },
+  'dramatic shadow': {
+    temp: '4000K neutral-cool',
+    direction: 'single hard key from 45° camera-right, no fill — pure chiaroscuro',
+    shadow: 'deep contrast ratio 8:1+, half-face in shadow, hard shadow edges',
+    mood: 'intense, moody, cinematic noir, premium authority',
+    productEffect: 'Products appear high-contrast and dramatic, premium positioning',
+    affiliateBest: 'Premium/luxury products, authority positioning, cinematic modes'
+  },
+  'cinematic rim': {
+    temp: '4500K–5600K cool-neutral',
+    direction: 'strong backlight rimming subject silhouette + subtle 10% fill from front',
+    shadow: 'edge-lit silhouette separation, dramatic rim highlight on jawline and shoulders, 6:1 ratio',
+    mood: 'cinematic, premium, high-end product, editorial authority',
+    productEffect: 'Creates product-subject separation via rim light, premium editorial feel',
+    affiliateBest: 'Cinematic preset, fashion, premium product showcase'
+  },
+  'rembrandt': {
+    temp: '3800K–4200K warm-neutral',
+    direction: '45° key light from camera-left, triangle highlight forms under eye, 4:1 ratio',
+    shadow: 'classic Rembrandt triangle on cheek, deep sculpted shadows, Old Masters aesthetic',
+    mood: 'artistic, dramatic, portrait-grade, trust-inspiring authority',
+    productEffect: 'Subject appears authoritative and credible, product benefits from artist-grade framing',
+    affiliateBest: 'Testimonial, review, authority positioning'
+  },
+  'volumetric': {
+    temp: '5000K–5600K neutral',
+    direction: 'side-angled key through haze/particles, god-ray shafts visible',
+    shadow: 'atmospheric depth with visible light rays, particles catching light, ethereal diffusion',
+    mood: 'ethereal, cinematic, atmospheric storytelling, aspirational',
+    productEffect: 'Products appear in cinematic atmosphere, dream-like quality for aspirational positioning',
+    affiliateBest: 'Beauty, fragrance, lifestyle, emotional storytelling'
+  },
+  'product spotlight': {
+    temp: '5200K daylight balanced',
+    direction: 'overhead spot + white card reflector fill, tight 20° beam cone on product zone',
+    shadow: 'focused light pool with soft falloff, dark negative space surrounds product',
+    mood: 'luxury, focused attention, e-commerce hero, precious product',
+    productEffect: 'Product becomes the luminous hero in a dark stage — maximum visual attention',
+    affiliateBest: 'Product showcase, cinematic hook, premium unboxing'
+  },
+};
+
+// ── Affiliate Psychology Vocabulary ── (Psychological triggers for high conversion)
+const AFFILIATE_PSYCHOLOGY_VOCAB = {
+  auto: {
+    label: 'Auto (AI-selected)',
+    trigger: 'AI selects the most contextually appropriate psychological trigger per scene',
+    tiktokNative: '',
+    sceneApplication: 'Blend the most natural conversion psychology into each scene moment'
+  },
+  fomo: {
+    label: 'FOMO (Fear of Missing Out)',
+    trigger: 'Urgency + scarcity + social momentum — viewer feels they are missing out if they do not act NOW',
+    tiktokNative: 'stok terbatas, jangan sampai kehabisan, orang lain udah pake, trending sekarang',
+    sceneApplication: 'Show product being used by satisfied subject, mention limited availability in voice line, CTA with urgency signal'
+  },
+  'social-proof': {
+    label: 'Social Proof Authority',
+    trigger: 'Bandwagon effect + authority bias — trusted others already validated this product',
+    tiktokNative: 'viral di TikTok, ribuan yang udah beli, review bintang lima, dipercaya jutaan orang',
+    sceneApplication: 'Confident testimonial body language, display of proof (ratings), voice line citing social validation'
+  },
+  curiosity: {
+    label: 'Curiosity Gap Hook',
+    trigger: 'Open a question loop that can only be closed by watching/clicking through',
+    tiktokNative: 'kalian belum tau ini, ternyata ada yang lebih bagus, ini yang bikin beda, jangan skip dulu',
+    sceneApplication: 'Opening scene withholds product reveal, builds tension through camera and expression before revealing'
+  },
+  authority: {
+    label: 'Authority / Expertise Positioning',
+    trigger: 'Expert credibility establishes trust before the ask — viewer follows the expert recommendation',
+    tiktokNative: 'ini yang gue rekomendasiin, sebagai yang udah coba, dari pengalaman gue, faktanya',
+    sceneApplication: 'Confident deliberate movements, direct eye contact, measured product interaction showing familiarity'
+  },
+  reciprocity: {
+    label: 'Reciprocity Value-First',
+    trigger: 'Give genuine value/tip/knowledge first, the viewer feels compelled to reciprocate by engaging/buying',
+    tiktokNative: 'tips gratis dulu, hack yang jarang diketahui, sebelum kalian salah pilih, info penting dulu',
+    sceneApplication: 'Open with helpful information, product appears as the natural conclusion/upgrade to the free tip'
+  },
+  pain: {
+    label: 'Pain Amplifier & Relief',
+    trigger: 'Articulate the pain clearly and viscerally, then position product as RELIEF — mirror the viewer anguish before solving it',
+    tiktokNative: 'pernah ngerasa frustasi, capek nyoba yang ga mempan, sama kayak aku dulu, akhirnya ketemu solusinya',
+    sceneApplication: 'Opening scene shows the pain/problem physically, middle scenes show discovery, final scene shows relief and satisfaction'
+  },
+};
+
+// ── Platform Optimization Map ──
+const PLATFORM_OPTIMIZATION_MAP = {
+  tiktok: {
+    label: 'TikTok FYP',
+    hookWindow: 'Critical: first 0–1.5 seconds must create a pattern interrupt to trigger the "watch more" algorithm signal.',
+    pacing: 'Fast cut pacing 2–4 second clips, high energy for first 5 seconds, sustain engagement with scene variety.',
+    cta: 'CTA in final 30% of video. "Cek link di bio" or "klik keranjang kuning" with clear pointing gesture.',
+    captionStrategy: 'Open-loop caption that withholds the punchline. Example: "POV: ketika akhirnya nemu yang ini"',
+    aspectRatio: '9:16 mandatory, subject fills 70%+ of vertical frame'
+  },
+  reels: {
+    label: 'Instagram Reels',
+    hookWindow: 'First 3 seconds: strong visual hook. Audio hook matters — trending sound or compelling opening line.',
+    pacing: 'Slightly slower than TikTok. Aesthetic quality weighted higher. 3–5 second narrative clips.',
+    cta: '"Link in bio" with overlay text. Save-worthy content for boost in algorithm. DM-based CTA effective.',
+    captionStrategy: 'Longer captions acceptable. Aspirational storytelling in caption supplements the video.',
+    aspectRatio: '9:16 or 4:5 — 4:5 performs better in feed'
+  },
+  shopee: {
+    label: 'Shopee Video',
+    hookWindow: 'First 2 seconds must show the product clearly. Purchase-intent audience — less entertainment, more proof.',
+    pacing: 'Demo-forward. Product interaction takes majority of runtime. Before-after is king.',
+    cta: 'Direct "tambah ke keranjang" call. Show product price on screen. Stock warnings effective.',
+    captionStrategy: 'Price-focused title. Mention discount percentage. Include product category keywords.',
+    aspectRatio: '9:16 mandatory. Product must be center-frame clear.'
+  },
+  universal: {
+    label: 'Universal Multi-Platform',
+    hookWindow: 'First 2 seconds: visual pattern interrupt. Must work without audio (60% watch muted).',
+    pacing: 'Balanced 3–4 second beats. Neither too fast nor too slow. Text overlay supplements.',
+    cta: 'Both verbal and visual CTA. Assume cross-platform deployment.',
+    captionStrategy: 'Short punchy caption, hashtag-ready, works on all platforms.',
+    aspectRatio: '9:16 primary, center-safe for 1:1 crop'
+  },
+};
+
+// ── Hook Formula Map ── (Proven high-conversion opening formulas)
+const HOOK_FORMULA_MAP = {
+  'curiosity-gap': {
+    label: 'Curiosity Gap',
+    formula: 'Tease a surprising/counterintuitive result WITHOUT revealing it yet — open a question loop.',
+    openingBeat: 'Begin mid-action or at the most surprising moment. Camera pushes toward the mystery.',
+    exampleID: 'Ini yang bikin aku nggak nyangka sama sekali...',
+    exampleEN: 'This is the thing nobody told me about...'
+  },
+  'pattern-interrupt': {
+    label: 'Pattern Interrupt',
+    formula: 'Break viewer autopilot with an unexpected visual, sound, or statement in frame 1.',
+    openingBeat: 'Subject is in an unusual position, unexpected action, or striking visual contrast vs typical content.',
+    exampleID: 'Stop. Jangan scroll dulu.',
+    exampleEN: 'Wait — before you skip this.'
+  },
+  'pain-amplifier': {
+    label: 'Pain Amplifier',
+    formula: 'Start by describing a relatable frustration/problem with emotional specificity — viewer self-identifies.',
+    openingBeat: 'Shot shows the problem physically: the mess, the failed attempt, the frustration.',
+    exampleID: 'Udah capek nyoba yang ga works...',
+    exampleEN: 'If you are still struggling with this...'
+  },
+  'social-proof-anchor': {
+    label: 'Social Proof Anchor',
+    formula: 'Open with a specific credibility number or crowd signal that establishes FOMO immediately.',
+    openingBeat: 'Confident body language, product visible, number/signal as opening visual or voice line.',
+    exampleID: 'Udah 500+ yang beli dan bagus semua...',
+    exampleEN: 'This has over 10,000 five-star reviews for a reason...'
+  },
+  'benefit-lead': {
+    label: 'Benefit Lead',
+    formula: 'Open with the #1 most compelling benefit — the result — before explaining the product.',
+    openingBeat: 'Show the result/outcome first in frame 1 (the after state), then walk back to the product.',
+    exampleID: 'Hasilnya langsung kelihatan dari hari pertama...',
+    exampleEN: 'I saw results from day one...'
+  },
+  'story-open': {
+    label: 'Story Open (Relatability Hook)',
+    formula: 'Begin with a mini personal story that places the viewer in a relatable scenario.',
+    openingBeat: 'Subject in natural environment, casual address to camera as if mid-conversation.',
+    exampleID: 'Jadi ceritanya waktu itu aku lagi...',
+    exampleEN: 'So this is what happened when I tried...'
+  },
 };
 
 const ASPECT_COMPOSITION = {
@@ -153,35 +395,70 @@ function estimateSceneDuration(sceneCount, targetDuration) {
   return 6;
 }
 
-function buildNarrativeArc(sceneCount, outputLanguage) {
+function buildNarrativeArc(sceneCount, outputLanguage, psychologyTrigger = 'auto', hookFormula = null) {
+  // Base narrative arcs — enhanced with psychology layer
   const enArc = [
-    ['HOOK', 'Stop the scroll with pattern interrupt and immediate curiosity.'],
-    ['PAIN POINT', 'Frame the problem or desire in one concrete visual beat.'],
-    ['DEMO', 'Show practical product use with believable body mechanics.'],
-    ['PROOF', 'Show visible result, side-by-side contrast, or tactile confirmation.'],
-    ['TRUST', 'Add specific detail that feels honest and experience-based.'],
-    ['VALUE', 'Emphasize benefit, convenience, or savings in plain language.'],
-    ['URGENCY', 'Introduce gentle FOMO: limited stock/time/social momentum.'],
-    ['CTA', 'End with clear action: click cart / check link now.'],
+    ['HOOK (0–1.5s)', 'Pattern interrupt: stop the scroll with an unexpected visual or statement. Camera movement creates immediate kinetic energy. This scene must trigger algorithmic watch-through signal.'],
+    ['PAIN/DESIRE', 'Amplify a relatable frustration or deep desire with emotional specificity. Viewer must self-identify: "that is exactly my problem." No product yet — build need first.'],
+    ['DISCOVERY', 'Product enters frame as the natural solution. NOT a hard sell — make it feel like a moment of relief or exciting find. Energy shifts from tension to hope.'],
+    ['DEMO', 'Show practical product use with believable biomechanical body mechanics. Hands work with product credibly. Result is implied through body language and movement response.'],
+    ['PROOF', 'Show visible tangible result — contrast, before/after implied, tactile confirmation. Specific credible detail makes this scene trustworthy: exact numbers, specific observations.'],
+    ['TRUST SIGNAL', 'Add one honest specific detail that only genuine experience would know. Micro-expression of authentic satisfaction. Builds the credibility that makes the CTA believable.'],
+    ['URGENCY/FOMO', 'Introduce gentle but real FOMO signal: limited stock/time, social momentum, "others are already using this." Must feel organic not scripted. Body language conveys urgency.'],
+    ['CTA', 'Clear decisive call-to-action: click cart / check link. Pointing gesture toward cart icon is required. Voice line must contain the CTA. Final product hero pose.'],
   ];
 
   const idArc = [
-    ['HOOK', 'Hentikan scroll dengan pattern interrupt dan rasa penasaran instan.'],
-    ['PAIN POINT', 'Tunjukkan masalah/keinginan dengan beat visual yang konkret.'],
-    ['DEMO', 'Tampilkan pemakaian produk secara praktis dan masuk akal.'],
-    ['PROOF', 'Perlihatkan hasil yang terlihat jelas atau bukti taktil.'],
-    ['TRUST', 'Tambahkan detail spesifik yang terasa jujur dan real.'],
-    ['VALUE', 'Tonjolkan manfaat, kemudahan, atau penghematan dengan bahasa ringan.'],
-    ['URGENCY', 'Bangun FOMO halus: stok/waktu/sosial momentum.'],
-    ['CTA', 'Tutup dengan aksi jelas: klik keranjang / cek link sekarang.'],
+    ['HOOK (0–1.5d)', 'Pattern interrupt: hentikan scroll dengan visual atau pernyataan tak terduga. Gerakan kamera menciptakan energi kinetik instan. Scene ini harus memicu sinyal algoritmik watch-through.'],
+    ['MASALAH/KEINGINAN', 'Perkuat frustrasi atau keinginan yang relatable dengan spesifisitas emosional. Penonton harus mengidentifikasi diri: "itu persis masalah aku." Produk belum muncul — bangun kebutuhan dulu.'],
+    ['PENEMUAN', 'Produk muncul sebagai solusi alami. BUKAN hard sell — buat terasa seperti momen lega atau penemuan menarik. Energi bergeser dari ketegangan ke harapan.'],
+    ['DEMO', 'Tampilkan penggunaan produk secara praktis dengan mekanika tubuh yang believable. Tangan berinteraksi dengan produk secara meyakinkan. Hasilnya tersirat melalui bahasa tubuh.'],
+    ['BUKTI', 'Tunjukkan hasil nyata yang terlihat — kontras, before/after tersirat, konfirmasi taktil. Detail spesifik yang kredibel membuat scene ini dipercaya: angka pasti, observasi spesifik.'],
+    ['SINYAL KEPERCAYAAN', 'Tambahkan satu detail jujur dan spesifik yang hanya akan diketahui dari pengalaman nyata. Ekspresi mikro kepuasan autentik. Membangun kredibilitas yang membuat CTA believable.'],
+    ['URGENSI/FOMO', 'Perkenalkan sinyal FOMO yang ringan tapi nyata: stok/waktu terbatas, momentum sosial, "yang lain udah pakai ini." Harus terasa organik bukan scripted. Bahasa tubuh menyampaikan urgensi.'],
+    ['CTA', 'Ajakan bertindak yang jelas dan tegas: klik keranjang / cek link. Gestur menunjuk ke ikon keranjang wajib dilakukan. Voice line harus berisi CTA. Pose hero produk terakhir.'],
   ];
+
+  // Psychology trigger enhancement layer
+  const psychologyEnhancementEN = {
+    fomo: 'PSYCHOLOGY LAYER — FOMO: Each scene must subtly telegraph scarcity or social momentum. Body language should convey urgency without desperation.',
+    'social-proof': 'PSYCHOLOGY LAYER — SOCIAL PROOF: Each scene reinforces that many satisfied users have validated this. Use credible signals: ratings visible, confident recommendation posture.',
+    curiosity: 'PSYCHOLOGY LAYER — CURIOSITY GAP: Withhold the full reveal until Scene 3+. Each early scene opens a new question the viewer must stay to answer.',
+    authority: 'PSYCHOLOGY LAYER — AUTHORITY: Subject demonstrates genuine product expertise. Deliberate, confident movements signal deep familiarity. Voice lines cite specific facts.',
+    reciprocity: 'PSYCHOLOGY LAYER — RECIPROCITY: First 1–2 scenes give free genuine value/tip. Product appears as the natural upgrade for those who want the full solution.',
+    pain: 'PSYCHOLOGY LAYER — PAIN AMPLIFIER: Scene 1–2 must viscerally and honestly portray the problem. Viewer must feel their own pain before the relief arrives.',
+  };
+
+  const psychologyEnhancementID = {
+    fomo: 'LAPISAN PSIKOLOGI — FOMO: Setiap scene harus secara halus menyiratkan kelangkaan atau momentum sosial. Bahasa tubuh menyampaikan urgensi tanpa terasa desperate.',
+    'social-proof': 'LAPISAN PSIKOLOGI — SOCIAL PROOF: Setiap scene memperkuat bahwa banyak pengguna puas telah memvalidasi ini. Gunakan sinyal kredibel: rating terlihat, postur rekomendasi yang percaya diri.',
+    curiosity: 'LAPISAN PSIKOLOGI — CURIOSITY GAP: Tahan reveal penuh sampai Scene 3+. Setiap scene awal membuka pertanyaan baru yang harus dijawab penonton dengan terus menonton.',
+    authority: 'LAPISAN PSIKOLOGI — AUTHORITY: Subjek menunjukkan keahlian produk yang tulus. Gerakan terarah dan percaya diri menandakan keakraban mendalam. Voice line mengutip fakta spesifik.',
+    reciprocity: 'LAPISAN PSIKOLOGI — RECIPROCITY: 1–2 scene pertama memberi nilai/tips gratis yang tulus. Produk muncul sebagai upgrade alami bagi yang ingin solusi lengkap.',
+    pain: 'LAPISAN PSIKOLOGI — PAIN AMPLIFIER: Scene 1–2 harus menggambarkan masalah secara jujur dan visceral. Penonton harus merasakan rasa sakitnya sendiri sebelum relief hadir.',
+  };
 
   const arcSource = outputLanguage === 'ID' ? idArc : enArc;
   const selected = arcSource.slice(0, sceneCount);
   if (selected.length > 0) {
     selected[selected.length - 1] = arcSource[arcSource.length - 1];
   }
-  return selected.map((item, index) => `- Scene ${index + 1}: ${item[0]} — ${item[1]}`).join('\n');
+
+  const arcLines = selected.map((item, index) => `- Scene ${index + 1} [${item[0]}]: ${item[1]}`).join('\n');
+
+  // Hook formula instruction
+  const hookMap = hookFormula && HOOK_FORMULA_MAP[hookFormula] ? HOOK_FORMULA_MAP[hookFormula] : null;
+  const hookLine = hookMap
+    ? `\nHOOK FORMULA (Scene 1): ${hookMap.label} — ${hookMap.formula} | Opening beat: ${hookMap.openingBeat}`
+    : '';
+
+  // Psychology enhancement
+  const psychMap = outputLanguage === 'ID' ? psychologyEnhancementID : psychologyEnhancementEN;
+  const psychLine = psychologyTrigger && psychologyTrigger !== 'auto' && psychMap[psychologyTrigger]
+    ? `\n${psychMap[psychologyTrigger]}`
+    : '';
+
+  return arcLines + hookLine + psychLine;
 }
 
 function buildBackgroundInstruction(background) {
@@ -276,6 +553,48 @@ function buildProductInteractionInstruction(productInteraction) {
 function buildRenderQualityInstruction(renderQuality) {
   const quality = RENDER_QUALITY_MAP[renderQuality] || RENDER_QUALITY_MAP['4k'];
   return `Render specification: ${quality.specs}. Slow-motion physics where appropriate for product emphasis.`;
+}
+
+function buildAffiliatePsychologyBlock(options) {
+  const psychologyTrigger = options.psychologyTrigger || 'auto';
+  const hookFormula = options.hookFormula || null;
+  const hookStrength = options.hookStrength || 'medium';
+
+  // Skip if fully auto (AI decides)
+  if (psychologyTrigger === 'auto' && !hookFormula) return '';
+
+  const psychVocab = AFFILIATE_PSYCHOLOGY_VOCAB[psychologyTrigger] || AFFILIATE_PSYCHOLOGY_VOCAB.auto;
+  const hook = hookFormula && HOOK_FORMULA_MAP[hookFormula] ? HOOK_FORMULA_MAP[hookFormula] : null;
+
+  const hookStrengthMap = {
+    soft: 'subtle, organic, woven into the narrative without feeling like a sales pitch',
+    medium: 'clear and purposeful, viewer feels the pull without being pressured',
+    aggressive: 'direct, high-urgency, strong emotional trigger — viewer must act NOW',
+  };
+  const strengthInstruction = hookStrengthMap[hookStrength] || hookStrengthMap.medium;
+
+  const lines = [
+    '═══ AFFILIATE PSYCHOLOGY FRAMEWORK ═══',
+    `Primary Trigger: ${psychVocab.label}`,
+    `Trigger Mechanism: ${psychVocab.trigger}`,
+  ];
+
+  if (psychVocab.tiktokNative) {
+    lines.push(`TikTok-Native Language Cues: ${psychVocab.tiktokNative}`);
+  }
+
+  lines.push(`Scene Application: ${psychVocab.sceneApplication}`);
+  lines.push(`Hook Intensity: ${strengthInstruction}`);
+
+  if (hook) {
+    lines.push('');
+    lines.push(`Hook Formula: ${hook.label} — ${hook.formula}`);
+    lines.push(`Opening Beat: ${hook.openingBeat}`);
+  }
+
+  lines.push('');
+
+  return lines.join('\n') + '\n';
 }
 
 function buildCinematicHookBlock(options) {
@@ -421,6 +740,21 @@ export function buildSystemPrompt(options = {}) {
   const basePrompt = customTemplate || DEFAULT_SYSTEM_PROMPT_TEMPLATE;
   const voiceLabel = resolveVoiceLineLabel(mergedOptions.voiceStyle);
 
+  // Platform optimization context
+  const platformKey = mergedOptions.platformTarget || 'tiktok';
+  const platform = PLATFORM_OPTIMIZATION_MAP[platformKey] || PLATFORM_OPTIMIZATION_MAP.tiktok;
+
+  // Affiliate Mode Protocol — always-on conversion intelligence
+  const affiliateProtocol = `
+AFFILIATE CONVERSION PROTOCOL (Always Active):
+Every scene must serve a dual purpose: (1) tell a compelling visual story, and (2) move the viewer along the purchase decision funnel.
+- HOOK WINDOW: Scene 1 must capture attention within ${platform.hookWindow}
+- PACING: ${platform.pacing}
+- CTA REQUIREMENT: ${platform.cta}
+- VISUAL CTA: Final scene MUST include a physical pointing gesture toward an imaginary cart/link icon in the lower-center frame.
+- CONVERSION INTEGRITY: Never let a scene feel purely decorative — every camera move, micro-expression, and body position must serve either narrative engagement or conversion intent.
+- PRODUCT VISIBILITY: Product must appear in every scene, even peripherally. Never let 2+ consecutive scenes pass with product out of frame.`;
+
   const cinematicAddendum = mergedOptions.cinematicMode ? `
 CINEMATIC PRODUCT HOOK PROTOCOL (Pro-Level):
 You must apply the Cinematic Product Hook formula to EVERY scene. This formula is designed to maximize viewer retention and conversion on short-form video platforms (TikTok, Shopee Video). Each scene must contain ALL of these elements woven into one flowing paragraph:
@@ -429,9 +763,10 @@ You must apply the Cinematic Product Hook formula to EVERY scene. This formula i
 3. PRODUCT INTERACTION (The Selling Point): Show tactile product interaction with texture detail. Fingers on surfaces, light catching materials, shallow DOF isolating the product moment.
 4. CINEMATIC LIGHTING (The Pattern Interrupt): Use high-contrast dimensional lighting (rim, Rembrandt, volumetric). NEVER flat lighting. Light must sculpt the subject and product.
 5. RENDER & TEXTURE PHYSICS (The Realism Factor): Demand visible skin pores, realistic fabric physics, subsurface scattering, physically-based materials. Force the AI to render at its highest capability.
-6. MOTION PARAMETERS: Slow-motion for product emphasis, natural physics for interactions, smooth camera motion with professional damping.` : '';
+6. MOTION PARAMETERS: Slow-motion for product emphasis, natural physics for interactions, smooth camera motion with professional damping.
+7. TEMPORAL CONSISTENCY: Each scene must physically and temporally follow from the previous — same lighting key angle, same outfit physics state, continuous spatial logic. No teleportation.` : '';
 
-  return `${basePrompt}${cinematicAddendum}
+  return `${basePrompt}${affiliateProtocol}${cinematicAddendum}
 
 OUTPUT CONTRACT (STRICT):
 - Produce exactly ${sceneCount} scenes labeled as: SCENE 1, SCENE 2, ..., SCENE ${sceneCount}.
@@ -441,6 +776,7 @@ OUTPUT CONTRACT (STRICT):
 - ${buildNegativePromptInstruction(mergedOptions.includeNegativePrompt)}
 - ${voiceLabel ? `Use "${voiceLabel}:" line in every scene.` : 'No Dialogue/Voiceover/Lip-sync lines anywhere.'}
 - Always preserve identity continuity from reference image and never describe face/skin/hair/body features.
+- CONVERSION CHECK: Before writing each scene, ask: does this scene advance the viewer toward taking action? If not, revise.
 - If uncertain, prefer concrete, camera-ready details over abstract adjectives.`;
 }
 
@@ -479,9 +815,15 @@ export function buildUserPrompt(preset, options, imageReferences = []) {
   const moves = Array.isArray(preset?.signatureMoves) && preset.signatureMoves.length > 0
     ? preset.signatureMoves
     : ['controlled movement with natural transition'];
+  // Use detailed movementPrompts (English, biomechanical) when available, fallback to signatureMoves
+  const detailedMoves = Array.isArray(preset?.movementPrompts) && preset.movementPrompts.length > 0
+    ? preset.movementPrompts
+    : moves;
   const moveAssignments = Array.from({ length: sceneCount }, (_, index) => {
-    const move = sanitizeInlineText(moves[index % moves.length], 'controlled movement');
-    return `- Scene ${index + 1}: "${move}"`;
+    const moveLabel = sanitizeInlineText(moves[index % moves.length], 'controlled movement');
+    const moveDetail = sanitizeInlineText(detailedMoves[index % detailedMoves.length], '');
+    const detailSuffix = moveDetail && moveDetail !== moveLabel ? `\n  Movement Detail: ${moveDetail}` : '';
+    return `- Scene ${index + 1}: "${moveLabel}"${detailSuffix}`;
   }).join('\n');
 
   const beatStructure = preset?.beatStructure ? `Beat Structure: ${sanitizeInlineText(preset.beatStructure)}` : '';
@@ -490,21 +832,46 @@ export function buildUserPrompt(preset, options, imageReferences = []) {
     ? `Mood Keywords: ${preset.moodKeywords.map((value) => sanitizeInlineText(value)).join(', ')}`
     : '';
 
-  const outfitLock = preset?.wardrobe
-    ? sanitizeInlineText(preset.wardrobe)
-    : '[as worn in reference image — describe consistent outfit details in every scene]';
+  // Use wardrobePrompt (detailed English for AI rendering) when available, fallback to wardrobe (UI label)
+  const outfitLock = preset?.wardrobePrompt
+    ? sanitizeInlineText(preset.wardrobePrompt)
+    : preset?.wardrobe
+      ? sanitizeInlineText(preset.wardrobe)
+      : '[Observe the reference image carefully: describe the exact outfit — garment type, fabric, color, fit, and all accessories. Lock this description across ALL scenes with zero changes.]';
 
   const voiceConstraints = buildVoiceConstraints(mergedOptions, voiceLanguage);
   const noVoiceWarning = !voiceConstraints.lineLabel
     ? '\n⛔ Voice is disabled. Do not output spoken lines.'
     : '';
 
-  const narrativeArc = buildNarrativeArc(sceneCount, outputLanguageCode);
+  const narrativeArc = buildNarrativeArc(
+    sceneCount,
+    outputLanguageCode,
+    mergedOptions.psychologyTrigger,
+    mergedOptions.hookFormula,
+  );
   const voiceExample = voiceConstraints.example || '';
 
   // Cinematic Product Hook (Pro-Level)
   const cinematicBlock = buildCinematicHookBlock(mergedOptions);
   const isCinematic = Boolean(mergedOptions.cinematicMode);
+
+  // Affiliate Psychology Block
+  const affiliatePsychBlock = buildAffiliatePsychologyBlock(mergedOptions);
+
+  // Platform optimization block
+  const platformKey = mergedOptions.platformTarget || 'tiktok';
+  const platform = PLATFORM_OPTIMIZATION_MAP[platformKey] || PLATFORM_OPTIMIZATION_MAP.tiktok;
+
+  // Conversion goal
+  const conversionGoal = mergedOptions.conversionGoal || 'purchase';
+  const conversionGoalMap = {
+    click: 'Drive viewer to CLICK the product link. Scene priority: curiosity → product reveal → irresistible CTA.',
+    purchase: 'Drive viewer to PURCHASE. Scene priority: need → demo → proof → urgency → cart CTA. Every scene advances buyer decision.',
+    follow: 'Drive viewer to FOLLOW the account. Scene priority: value-first → entertaining → subtle CTA to follow for more.',
+    share: 'Drive viewer to SHARE the content. Scene priority: surprising → relatable → shareable hook → open loop.',
+  };
+  const conversionInstruction = conversionGoalMap[conversionGoal] || conversionGoalMap.purchase;
 
   const negExample = includeNegativePrompt
     ? `\nNegative Prompt: ${isCinematic ? CINEMATIC_NEGATIVE_PROMPT : 'extra fingers, clothing teleportation, outfit color change, background warping, temporal flicker, duplicate limbs, floating body parts'}`
@@ -515,16 +882,28 @@ IMAGE-TO-VIDEO — ${presetName}${isCinematic ? ' [CINEMATIC HOOK MODE]' : ''}
 Vibe: ${presetVibe} | Energy: ${presetEnergy}
 BPM: ${sanitizeInlineText(preset?.bpmRange, `${bpm.avg}`)} | Camera: ${presetCameraStyle}
 ${preset?.notes ? `Notes: ${sanitizeInlineText(preset.notes)}` : ''}
+Platform Target: ${platform.label} | Conversion Goal: ${conversionGoal.toUpperCase()}
 ═══════════════════════════════════════
-
+${mergedOptions.productName ? `
+🛒 PRODUCT BEING SOLD: "${sanitizeInlineText(mergedOptions.productName)}"
+→ You MUST mention this product name by name in at least the CTA scene's voice line and any scene where the product is first shown.
+→ Every scene that shows product interaction must refer to the product explicitly as "${sanitizeInlineText(mergedOptions.productName)}".
+→ Do NOT invent or substitute a different product name.
+` : ''}
 ⚠️ IMAGE-TO-VIDEO MODE:
 Subject appearance comes from reference image.
 Never describe facial features, skin tone, hair color, eye details, or body proportions.
 Focus on: movement mechanics, outfit behavior, camera craft, lighting, scene transitions, conversion intent.
+CRITICAL — OUTFIT CONSISTENCY: Observe the exact outfit from the reference image (garment type, color, fabric, fit, accessories). The SAME outfit must appear in EVERY scene — zero changes, zero additions, zero removals.
+CRITICAL — MOVEMENT MATCHING: Each scene's movement instruction describes precise body mechanics. Follow the biomechanical detail exactly — joint angles, hand positions, weight transfer, facial micro-expressions.
+CRITICAL — SCENE CONTINUITY: Maintain seamless flow between scenes. The action at the end of a scene must physically and logically connect to the beginning of the next scene. Keep the background environment and lighting consistent unless a location change is explicitly justified.
+CRITICAL — TEMPORAL PHYSICS: Cloth inertia, hair momentum, jewelry swing must be consistent with the previous scene's ending motion vector. Actions don't reset between scenes — they continue.
 
 ${subjectDescription ? `SUBJECT NOTES (non-facial constraints only): ${subjectDescription}` : 'SUBJECT NOTES: none'}
 
-${cinematicBlock}CONVERSION NARRATIVE ARC:
+CONVERSION OBJECTIVE: ${conversionInstruction}${mergedOptions.productName ? ` Product: "${sanitizeInlineText(mergedOptions.productName)}"` : ''}
+
+${affiliatePsychBlock}${cinematicBlock}CONVERSION NARRATIVE ARC:
 ${narrativeArc}
 
 OUTFIT LOCK (repeat in ALL scenes): ${outfitLock}
@@ -533,14 +912,17 @@ ${transitionStyle}
 ${moodKeywords}
 
 CAMERA SETTINGS:
-- Lens: ${camVocab.lens} at ${camVocab.aperture}
+- Primary Lens: ${camVocab.lens} at ${camVocab.aperture}
 - Movement: ${camVocab.movement}
 - Framing: ${camVocab.framing}
 - Composition: ${aspectComp}
+- Affiliate Use Context: ${camVocab.affiliateUse || 'general purpose'}
 
 LIGHTING:
 - Temperature: ${lightVocab.temp} | Direction: ${lightVocab.direction}
 - Shadows: ${lightVocab.shadow} | Mood: ${lightVocab.mood}
+- Product Effect: ${lightVocab.productEffect || 'standard cinematic rendering'}
+- Best For: ${lightVocab.affiliateBest || 'general'}
 
 Background: ${backgroundInstruction}
 Realism: ${realism} | Output Language: ${outputLanguage}
@@ -561,18 +943,19 @@ ${voiceConstraints.instruction}${noVoiceWarning}
 
 ${customInstructions ? `CUSTOM INSTRUCTIONS:\n${customInstructions}\n` : ''}TASK:
 Generate exactly ${sceneCount} scenes. For each scene:
-1. Describe one continuous action paragraph (minimum 75 words) with physically grounded movement.
-2. Repeat outfit lock and explain garment/accessory physics reacting to motion.
-3. Mention concrete camera behavior, lens feel, and lighting interaction in the same paragraph.
-4. End paragraph with a transition cue into next scene.
-5. Add one scene-specific Negative Prompt line only if enabled.
-6. Add one spoken line using the required voice label only if voice is enabled.
+1. Describe one continuous action paragraph (minimum 80 words) with physically grounded movement following the Movement Detail provided.
+2. Repeat outfit lock EXACTLY as described — same garment, same color, same accessories in every scene. Describe garment/accessory physics reacting to motion (fabric sway, sleeve shift, jewelry bounce, inertia delay).
+3. Mention concrete camera behavior, lens focal length, aperture feel, and lighting interaction in the same paragraph.
+4. Embed the affiliate conversion intent naturally — product must be visible or referenced${mergedOptions.productName ? `, and REFERRED TO BY NAME as "${sanitizeInlineText(mergedOptions.productName)}" in scenes where it is shown` : ''}, body language must serve conversion psychology, not just aesthetics.
+5. End paragraph with a clear motion-matched transition cue into the next scene (describe the exact action that bridges both scenes).
+6. Add one scene-specific Negative Prompt line only if enabled — make it specific to the motion type in this scene.
+7. Add one spoken line using the required voice label only if voice is enabled — line must serve the scene's narrative arc role${mergedOptions.productName ? `, and must contain the product name "${sanitizeInlineText(mergedOptions.productName)}" in at minimum the CTA scene` : ''}.
 
 FORMAT (STRICT, repeat for all scenes):
-SCENE 1: [TITLE IN UPPERCASE]
+SCENE 1: [TITLE IN UPPERCASE — must describe the narrative arc role]
 Duration: ${sceneDuration}s | Beats: ${beatsPerScene} | Move: [assigned move] | Camera: [lens + movement]
-Prompt: [single rich paragraph, >=75 words, no bullet list]
-${includeNegativePrompt ? 'Negative Prompt: [scene-specific artifact blockers]' : '[Do not output Negative Prompt line]'}${voiceExample}
+Prompt: [single rich paragraph, >=80 words, no bullet list, includes outfit lock, camera, lighting, motion physics, conversion intent]
+${includeNegativePrompt ? 'Negative Prompt: [scene-specific and motion-specific artifact blockers]' : '[Do not output Negative Prompt line]'}${voiceExample}
 ${negExample}
 
 DO NOT output anything outside the SCENE blocks.`;

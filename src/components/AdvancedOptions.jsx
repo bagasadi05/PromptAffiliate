@@ -108,6 +108,25 @@ export default function AdvancedOptions({ options, onChange }) {
 
             {isOpen && (
                 <div className="advanced-options__body">
+                    {/* Product Name — Nama Barang yang Dijual */}
+                    <div className="option-group option-group--highlight">
+                        <label className="option-label">
+                            🛒 Nama Produk / Barang
+                            <span className="option-badge option-badge--required">WAJIB</span>
+                        </label>
+                        <input
+                            type="text"
+                            className="option-input option-input--product"
+                            placeholder="e.g. Serum Vitamin C Somethinc 30ml, Botol Minum Tritan 1L, Masker Rambut Makarizo..."
+                            value={currentOptions.productName || ''}
+                            onChange={(e) => handleChange('productName', e.target.value)}
+                            maxLength={120}
+                        />
+                        <span className="option-hint">
+                            ✨ AI akan menyebutkan nama produk ini secara spesifik di setiap scene, voice line, dan CTA. Semakin detail, makin tepat hasilnya.
+                        </span>
+                    </div>
+
                     {/* Subject Description (Identity Lock) */}
                     <div className="option-group">
                         <label className="option-label">
@@ -124,6 +143,7 @@ export default function AdvancedOptions({ options, onChange }) {
                             {t('advancedSubjectHint')}
                         </span>
                     </div>
+
 
                     {/* Creativity (Temperature) */}
                     <div className="option-group">

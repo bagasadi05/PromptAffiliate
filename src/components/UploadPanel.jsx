@@ -8,7 +8,7 @@ const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_IMAGES = 4;
 
-export default function UploadPanel({ files, previews, imageReferences, onFilesChange, onClear }) {
+export default function UploadPanel({ files, previews, imageReferences, onFilesChange, onClear, onAnalyzePreset, isAnalyzing, canAnalyzePreset = true }) {
     const { t } = useI18n();
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef(null);
@@ -41,7 +41,7 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
         for (const f of newFiles) {
             if (!validateFile(f)) continue;
             if (fileList.length + validFiles.length >= MAX_IMAGES) {
-                showToast(`Maksimum ${MAX_IMAGES} gambar`, 'warning');
+                showToast(t('uploadMaxImagesReached').replace('{max}', String(MAX_IMAGES)), 'warning');
                 break;
             }
             try {
@@ -49,7 +49,7 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
                 validFiles.push(compressed);
                 if (compressedSize < originalSize) {
                     const saved = ((1 - compressedSize / originalSize) * 100).toFixed(0);
-                    showToast(`Dikompresi ${saved}% lebih kecil`, 'info', 2000);
+                    showToast(t('uploadCompressedInfo').replace('{percent}', String(saved)), 'info', 2000);
                 }
             } catch {
                 validFiles.push(f);
@@ -176,7 +176,7 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
                         <span className="format-badge">JPG</span>
                         <span className="format-badge">PNG</span>
                         <span className="format-badge">WebP</span>
-                        <span className="format-badge">Max 10MB</span>
+                        <span className="format-badge">{t('uploadMaxSizeBadge')}</span>
                     </div>
                     <input
                         ref={inputRef}
@@ -195,69 +195,72 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
                             const isPrimary = (reference.priority || (i + 1)) === 1;
 
                             return (
-                            <div key={i} className="preview-image-wrapper">
-                                <img src={preview} alt={`Preview ${i + 1}`} className="preview-image" />
-                                <div className="preview-overlay">
-                                    <span className="preview-filename">{fileList[i]?.name}</span>
-                                    <span className="preview-size">
-                                        {(fileList[i]?.size / 1024 / 1024).toFixed(2)} MB
-                                    </span>
-                                </div>
-                                <button
-                                    className="preview-remove-btn"
-                                    onClick={(e) => { e.stopPropagation(); handleRemoveOne(i); }}
-                                    title="Remove"
-                                >
-                                    ✕
-                                </button>
-                                <div className="preview-reference-controls" onClick={(e) => e.stopPropagation()}>
-                                    <div className="preview-reference-header">
-                                        <div className="preview-reference-title-row">
-                                            <strong>Ref #{i + 1}</strong>
-                                            {isPrimary && <span className="preview-primary-badge">Primary</span>}
-                                        </div>
-                                        <span>{Math.round(reference.influence)}%</span>
+                                <div key={i} className="preview-image-wrapper">
+                                    <img src={preview} alt={`Preview ${i + 1}`} className="preview-image" />
+                                    <div className="preview-overlay">
+                                        <span className="preview-filename">{fileList[i]?.name}</span>
+                                        <span className="preview-size">
+                                            {(fileList[i]?.size / 1024 / 1024).toFixed(2)} MB
+                                        </span>
                                     </div>
-                                    <select
-                                        className="option-select option-select--compact"
-                                        value={reference.role}
-                                        onChange={(e) => handleReferenceChange(i, { role: e.target.value })}
+                                    <button
+                                        className="preview-remove-btn"
+                                        onClick={(e) => { e.stopPropagation(); handleRemoveOne(i); }}
+                                        title={t('uploadRemove')}
+                                        aria-label={t('uploadRemove')}
                                     >
-                                        {IMAGE_REFERENCE_ROLES.map((role) => (
-                                            <option key={role.value} value={role.value}>{role.label}</option>
-                                        ))}
-                                    </select>
-                                    <input
-                                        type="range"
-                                        min={1}
-                                        max={100}
-                                        step={1}
-                                        value={Math.round(reference.influence)}
-                                        onChange={(e) => handleReferenceChange(i, { influence: parseInt(e.target.value, 10) })}
-                                    />
-                                    <div className="preview-reference-order-actions">
-                                        <button
-                                            type="button"
-                                            className="btn btn--outline btn--sm"
-                                            onClick={() => handleMoveImage(i, -1)}
-                                            disabled={i === 0}
-                                            title="Move up"
+                                        ✕
+                                    </button>
+                                    <div className="preview-reference-controls" onClick={(e) => e.stopPropagation()}>
+                                        <div className="preview-reference-header">
+                                            <div className="preview-reference-title-row">
+                                                <strong>{`${t('uploadRefLabel')} #${i + 1}`}</strong>
+                                                {isPrimary && <span className="preview-primary-badge">{t('uploadPrimaryLabel')}</span>}
+                                            </div>
+                                            <span>{Math.round(reference.influence)}%</span>
+                                        </div>
+                                        <select
+                                            className="option-select option-select--compact"
+                                            value={reference.role}
+                                            onChange={(e) => handleReferenceChange(i, { role: e.target.value })}
                                         >
-                                            ↑
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn btn--outline btn--sm"
-                                            onClick={() => handleMoveImage(i, 1)}
-                                            disabled={i === fileList.length - 1}
-                                            title="Move down"
-                                        >
-                                            ↓
-                                        </button>
+                                            {IMAGE_REFERENCE_ROLES.map((role) => (
+                                                <option key={role.value} value={role.value}>{role.label}</option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="range"
+                                            min={1}
+                                            max={100}
+                                            step={1}
+                                            value={Math.round(reference.influence)}
+                                            onChange={(e) => handleReferenceChange(i, { influence: parseInt(e.target.value, 10) })}
+                                        />
+                                        <div className="preview-reference-order-actions">
+                                            <button
+                                                type="button"
+                                                className="btn btn--outline btn--sm"
+                                                onClick={() => handleMoveImage(i, -1)}
+                                                disabled={i === 0}
+                                                title={t('uploadMoveUp')}
+                                                aria-label={t('uploadMoveUp')}
+                                            >
+                                                ↑
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn--outline btn--sm"
+                                                onClick={() => handleMoveImage(i, 1)}
+                                                disabled={i === fileList.length - 1}
+                                                title={t('uploadMoveDown')}
+                                                aria-label={t('uploadMoveDown')}
+                                            >
+                                                ↓
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
+                            );
                         })}
                     </div>
                     <div className="preview-actions">
@@ -267,6 +270,16 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
                                 onClick={() => inputRef.current?.click()}
                             >
                                 {t('uploadAddMore')} ({fileList.length}/{MAX_IMAGES})
+                            </button>
+                        )}
+                        {onAnalyzePreset && fileList.length > 0 && (
+                            <button
+                                className="btn btn--secondary btn--sm"
+                                onClick={onAnalyzePreset}
+                                disabled={isAnalyzing || !canAnalyzePreset}
+                                title={canAnalyzePreset ? t('analyzePresetHint') : t('analyzePresetGeminiRequired')}
+                            >
+                                {isAnalyzing ? t('analyzePresetLoadingButton') : t('analyzePresetButton')}
                             </button>
                         )}
                         <button className="btn btn--danger btn--sm" onClick={handleClearAll}>

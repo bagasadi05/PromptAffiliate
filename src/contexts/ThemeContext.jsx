@@ -10,7 +10,10 @@ export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => getItem(KEYS.THEME, 'dark'));
 
     useEffect(() => {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.documentElement.classList.toggle('light', theme === 'light');
         document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
         document.querySelector('meta[name="theme-color"]')?.setAttribute(
             'content',
             theme === 'dark' ? '#0a0a0f' : '#f8fafc'

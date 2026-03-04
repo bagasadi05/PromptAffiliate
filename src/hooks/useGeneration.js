@@ -1,13 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { generatePrompt } from '../services/gemini';
-import { fileToBase64 } from '../utils/fileToBase64';
 import { normalizeImageReferences } from '../utils/imageReferences';
 import { showToast } from '../lib/toastBus';
 
 /**
  * Custom hook encapsulating the entire prompt generation lifecycle:
  * - progress simulation
- * - file-to-base64 conversion
  * - streaming API call with abort support
  * - history management
  * - cleanup on unmount
@@ -106,18 +104,10 @@ export default function useGeneration({
         simulateProgress();
 
         try {
-            // Convert all files to base64
-            const imageBase64Array = await Promise.all(files.map(f => fileToBase64(f)));
-            const imageMimeTypes = files.map(f => f.type);
             const normalizedImageReferences = normalizeImageReferences(files, imageReferences);
 
-            // Use single value if only one image (backward compat)
-            const imageBase64 = imageBase64Array.length === 1 ? imageBase64Array[0] : imageBase64Array;
-            const imageMimeType = imageMimeTypes.length === 1 ? imageMimeTypes[0] : imageMimeTypes;
-
             const result = await generatePrompt({
-                imageBase64,
-                imageMimeType,
+                files,
                 preset: selectedPreset,
                 userOptions: advancedOptions,
                 imageReferences: normalizedImageReferences,

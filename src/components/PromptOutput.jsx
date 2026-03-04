@@ -78,7 +78,7 @@ function SceneCard({ scene, onEditScene }) {
         <div className="scene-card__actions">
           {isEditing ? (
             <>
-              <button type="button" className="btn btn--save-scene" onClick={handleSave}>✓ Save</button>
+              <button type="button" className="btn btn--save-scene" onClick={handleSave}>✓ {t('save')}</button>
               <button type="button" className="btn btn--cancel-scene" onClick={handleCancel}>{t('cancel')}</button>
             </>
           ) : (
@@ -95,7 +95,7 @@ function SceneCard({ scene, onEditScene }) {
             type="button"
             className={`btn btn--copy-scene ${copied ? 'btn--copied' : ''}`}
             onClick={handleCopy}
-            title={`Copy Scene ${scene.id}`}
+            title={`${t('copy')} ${t('sceneLabel')} ${scene.id}`}
           >
             {copied ? '✓' : t('copy')}
           </button>
@@ -434,7 +434,7 @@ export default function PromptOutput({
                     className={`view-toggle__btn ${viewMode === 'json' ? 'view-toggle__btn--active' : ''}`}
                     onClick={() => setViewMode('json')}
                   >
-                    📦 JSON
+                      {t('jsonTab')}
                   </button>
                 </div>
               )}
@@ -451,7 +451,7 @@ export default function PromptOutput({
                   📝 .md
                 </button>
                 <button type="button" className="btn btn--secondary btn--sm" onClick={handleDownloadJson}>
-                  📦 .json
+                  {t('downloadJson')}
                 </button>
               </div>
               <button type="button" className="btn btn--outline btn--sm" onClick={onRegenerate}>
@@ -463,8 +463,8 @@ export default function PromptOutput({
           {viewMode === 'json' ? (
             <div className="json-output">
               <div className="json-output__header">
-                <span className="json-output__badge">📦 Structured JSON</span>
-                <span className="json-output__info">{jsonData?.sceneCount || 0} scenes • {jsonString.length.toLocaleString()} chars</span>
+                <span className="json-output__badge">{t('jsonStructuredLabel')}</span>
+                <span className="json-output__info">{jsonData?.sceneCount || 0} {t('qualitySceneCount').toLowerCase()} • {jsonString.length.toLocaleString()} {t('titleCharUnit')}</span>
               </div>
               <pre className="json-output__content">{jsonString}</pre>
             </div>

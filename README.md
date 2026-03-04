@@ -29,6 +29,18 @@ npm install
 ```env
 GEMINI_API_KEY=your_real_key_here
 GEMINI_MODEL=gemini-2.5-flash
+
+# Optional fallback when Gemini is rate-limited/quota-limited
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_FALLBACK_MODEL=nvidia/nemotron-nano-12b-v2-vl:free
+
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+
+# Optional hardening (recommended)
+OPENCODE_AUTH_TOKEN=your_private_token_here
+GEMINI_RATE_LIMIT_WINDOW_MS=60000
+GEMINI_RATE_LIMIT_MAX_REQUESTS=20
+GEMINI_RATE_LIMIT_MAX_HEAVY_REQUESTS=8
 ```
 
 ## Jalankan

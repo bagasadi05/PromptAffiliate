@@ -35,6 +35,8 @@ export function removeItem(key) {
 // Storage keys
 export const KEYS = {
     API_KEY: 'gemini_api_key',
+    OPENCODE_AUTH_TOKEN: 'opencode_auth_token',
+    GROKPI_AUTOMATION_STATE: 'grokpi_automation_state',
     HISTORY: 'prompt_history',
     FAVORITES: 'favorites',
     THEME: 'theme',

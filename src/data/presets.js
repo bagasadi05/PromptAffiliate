@@ -6,15 +6,22 @@ export const presets = [
         category: 'Review',
         vibe: 'Jujur, terpercaya, informatif',
         bpmRange: '85–105',
-        cameraStyle: 'Talking-head medium shot + close-up sisipan produk',
+        cameraStyle: 'Talking-head medium shot + close-up sisipan produk fashion',
         energyLevel: 'Medium',
         signatureMoves: [
-            'Pegang produk di samping wajah — eye level',
-            'Tunjuk fitur sambil jelaskan keunggulan',
-            'Ekspresi genuine saat coba produk',
-            'Thumb up + hold produk — closing CTA'
+            'Pegang item fashion di samping badan — tunjukkan ukuran dan warna',
+            'Bentangkan kain di depan kamera — tunjukkan tekstur dan jahitan',
+            'Coba pakai langsung — ekspresi genuine saat lihat hasilnya di cermin',
+            'Thumb up + hold item fashion — closing CTA keranjang kuning'
         ],
-        notes: 'Gaya UGC jujur lebih dipercaya. Sebutkan kelebihan DAN kekurangan. Akhiri dengan CTA "cek keranjang kuning". Audio trending calm.',
+        movementPrompts: [
+            'Subject holds the fashion item (garment, bag, or shoes) at chest level beside their torso with relaxed right arm, displaying it fully unfolded or unboxed. Left hand smooths the fabric surface, showing texture. Weight settled evenly on both hips, torso upright with slight forward lean conveying openness. Fingers spread along the garment to show size and drape.',
+            'Right index finger extends to trace along a specific quality detail on the fashion item — a seam, stitching line, zipper, or button. Left hand holds the garment open for visibility. Shoulder rotates 15° toward the item, head tilts 5° in evaluation. Genuine nodding motion — two small deliberate nods — communicating fabric quality approval.',
+            'Subject holds the fashion item up against their own body — pressing the top against chest or holding jeans at waist — to show sizing context. Eyebrows raise slightly in pleasant realization of the quality, corners of the mouth lift into a subtle authentic smile. Upper body leans forward 10° toward camera to show detail, then settles back as satisfaction registers.',
+            'Right hand lifts with a clear thumbs-up gesture at shoulder height while left hand holds the fashion item steady, displaying it as a hero product. Chin lifts 5°, confident subtle smile, direct eye contact with camera lens. Item fully visible and well-lit for the CTA hold lasting 1.5 seconds.'
+        ],
+        wardrobePrompt: 'Solid neutral base outfit (white fitted tee or clean black top) that does not compete with the fashion product being reviewed. The fashion ITEM being sold is the visual hero — keep reviewer outfit minimal and understated. Hair neat. No competing accessories. Let the product color and texture stand out.',
+        notes: 'Cocok untuk review baju, sepatu, tas, aksesori fashion. Tunjukkan bahan, jahitan, dan fit. Sebutkan size yang dipakai. Akhiri dengan CTA "cek keranjang kuning".',
         emoji: '⭐',
         color: '#F59E0B',
         beatStructure: '4/4 soft, conversational pacing',
@@ -28,15 +35,22 @@ export const presets = [
         category: 'Review',
         vibe: 'Excited, bikin penasaran, impulsive buy',
         bpmRange: '100–125',
-        cameraStyle: 'POV handheld, close-up produk, reaction selfie',
+        cameraStyle: 'POV handheld, close-up fashion item, reaction selfie',
         energyLevel: 'High',
         signatureMoves: [
-            'Buka TikTok Shop — screen recording gesture',
-            'Dramatic reveal saat buka paket',
-            'Over-the-top excited reaction',
-            'Langsung pakai/coba + wow face'
+            'Buka TikTok Shop — gesture scroll menemukan outfit impian',
+            'Dramatic reveal buka paket fashion haul',
+            'Langsung try-on + over-the-top excited reaction melihat fit',
+            'Mirror selfie pose — "gais ini literally worth it banget!"'
         ],
-        notes: 'Format "TikTok made me buy it". Reaksi harus genuine dan antusias. Tunjukkan harga murah = value tinggi. Bikin FOMO.',
+        movementPrompts: [
+            'Subject sits facing camera swiping through imaginary TikTok Shop fashion items — right thumb swiping upward repeatedly, eyes widening as they discover a garment. Left hand flies up to cover mouth in pre-excitement. Body leans forward in seat, energy building. "I just found the perfect outfit" energy.',
+            'Both hands grip a fashion delivery package, fingers tearing open the seal with deliberate dramatic slowness. Eyebrows raised in anticipation, slight lip bite. Pull the folded garment or fashion item out with both hands in a smooth upward reveal motion — fabric unfurls as arms extend forward to present to camera. The outfit color and material catch the light.',
+            'Jaw drops open in genuine surprise at the fabric quality and color accuracy. Both hands fly up, one holding the garment against body to show sizing. Eyes widen fully, head tilts back 15°. Subject immediately holds the fashion item up against themselves at mirror distance — nodding rapidly in approval, body bouncing slightly with excitement. "It fits exactly like the picture!" energy.',
+            'Subject immediately tries on or holds fashion item at full-body distance showing the complete look. Head nods rapidly in approval in front of a mirror or toward camera, mouth forms an impressed "O". Eyes dart between outfit and camera sharing the discovery moment. Free hand gestures at item details — pointing at fabric quality, color, fit. Full-body pose final reveal.'
+        ],
+        wardrobePrompt: 'Trendy casual Gen-Z outfit — the fashion ITEM being reviewed is the star. Start scene 1-2 in simple base layer (fitted white tee or cami) then transition to wearing the affiliate fashion item in scenes 3-4. Accessories: small hoops, thin necklace. Hair effortlessly styled. The "just got this delivered" authentic energy.',
+        notes: 'Format "TikTok made me buy this outfit". Tunjukkan fit langsung di badan, warna asli, dan kualitas bahan. Sebutkan harga dan size. Bikin FOMO fashion.',
         emoji: '🤩',
         color: '#EC4899',
         beatStructure: '4/4 upbeat, energy building toward reveal',
@@ -50,15 +64,22 @@ export const presets = [
         category: 'Review',
         vibe: 'Objektif, side-by-side, edukatif',
         bpmRange: '90–110',
-        cameraStyle: 'Split-screen atau side-by-side flat-lay, static tripod',
+        cameraStyle: 'Split-screen atau side-by-side flat-lay fashion items, static tripod',
         energyLevel: 'Medium',
         signatureMoves: [
-            'Taruh 2 produk berdampingan di meja',
-            'Test satu per satu — close-up hasil',
-            'Tunjuk pemenang dengan gesture',
-            'Final verdict + link di keranjang kuning'
+            'Taruh 2 item fashion berdampingan — tunjukkan perbedaan bahan dan warna',
+            'Coba satu per satu — tunjukkan fit dan drape di badan',
+            'Tunjuk pemenang fashion item + jelaskan alasan (harga, bahan, jahitan)',
+            'Final verdict + point ke keranjang kuning item pemenang'
         ],
-        notes: 'Bandingkan harga, kualitas, performa. Produk affiliate = pemenang. Data/fakta > opini. Format A vs B sangat engaging.',
+        movementPrompts: [
+            'Both hands hold two garments — one in each hand — displayed side by side at chest level. Fabric of both items visible, colors contrasting. Fingers grip each garment at the shoulder seam. Head turns left to right between the items analytically. Arms extend slightly forward so camera can see both garment fronts clearly.',
+            'Right hand holds up fashion item A against body, left hand smooths it to show drape and fit. Eyebrows furrow slightly in evaluation — checking the cut, the fall of the fabric, the color accuracy. Sets it aside and repeats with fashion item B on the other side. Head tilts in comparison, lips pressed in thoughtful consideration.',
+            'Right hand points decisively at the winning fashion item on a flat surface or held up. Index finger taps the fabric firmly — this one. Head nods with strong conviction, slight approval smile. Left hand gestures pushing the other item aside or downward. Eye contact camera-direct with confident expression.',
+            'Both hands lift the winning fashion item to hero presentation at mid-chest — fabric fully displayed, drape visible. Clear satisfied smile, single definitive nod. Subject holds item against own body briefly to show scale and fit. Right index finger then points downward toward imaginary cart link, holding 2 seconds.'
+        ],
+        wardrobePrompt: 'Simple neutral base outfit (clean fitted tee, solid color) that keeps all visual focus on the two fashion items being compared. Avoid wearing busy prints or colors that compete with the garments on display. Clean, understated reviewer look.',
+        notes: 'Format "brand mahal vs brand lokal" atau "baju lama vs baju baru" untuk fashion. Bandingkan bahan, jahitan, harga, dan fit di badan. Produk affiliate = pemenang.',
         emoji: '⚖️',
         color: '#8B5CF6',
         beatStructure: '4/4 structured, clear segmented rhythm',
@@ -72,17 +93,24 @@ export const presets = [
         id: 'unboxing-asmr',
         name: 'Unboxing ASMR',
         category: 'Unboxing',
-        vibe: 'Satisfying, ASMR, first impression',
+        vibe: 'Satisfying, ASMR, first impression fashion haul',
         bpmRange: '80–100',
-        cameraStyle: 'Top-down flat-lay, macro close-up, soft lighting',
+        cameraStyle: 'Top-down flat-lay, macro close-up kain dan aksesori, soft lighting',
         energyLevel: 'Low',
         signatureMoves: [
-            'Buka segel packaging — suara kresek satisfying',
-            'Angkat produk pelan — dramatic reveal',
-            'Tap-tap tekstur produk — ASMR moment',
-            'Susun rapi semua item — aesthetic flat-lay'
+            'Buka plastik packaging fashion — suara kresek satisfying',
+            'Angkat baju pelan dari kotak — fabric unfurl dramatic reveal',
+            'Finger-slide di atas kain — ASMR fashion texture moment',
+            'Susun semua item fashion rapi — aesthetic flat-lay ootd spread'
         ],
-        notes: 'Fokus suara (robek, kresek, klik). No music atau music pelan. Tangan bersih, kuku rapi. Pencahayaan lembut. Caption: link di bio/keranjang.',
+        movementPrompts: [
+            'Only hands visible in frame — clean groomed fingernails with soft neutral nail color. Fingers slowly peel the polybag or tissue wrap from the fashion item with deliberate controlled motion, pulling the plastic back at 2cm per second. The fabric inside becomes gradually visible through the transparent wrap. Both hands work in unison, peeling from opposite edges simultaneously.',
+            'Both hands reach into the opened fashion package and lift the folded garment out with slow reverent motion. As the item clears the box edge, fingers spread to let the fabric unfurl naturally — the garment drops open revealing color and silhouette. Slight pause at full unfurl height, hands gently shaking the item once to release any fold creases. The fabric movement catches soft lighting.',
+            'Right index and middle fingertips press gently against the fabric surface and slide from top to bottom at 1cm per second — feeling the weave, weight, and texture of the material. Then fingernails scratch very lightly across the surface creating a near-silent tactile ASMR moment. Left hand holds the garment flat and taut for the texture demonstration.',
+            'Both hands arrange all unboxed fashion items into an aesthetic flat-lay: main garment centered, accessories (belt, earrings, scarf) arranged around it. Fingers adjust each piece orientation and spacing with precision. Tags and labels are turned face-up for visibility. Final nudge places hero garment in center frame. Hands withdraw frame-edge slowly, leaving a perfectly composed fashion flat-lay.'
+        ],
+        wardrobePrompt: 'Only hands and forearms visible in most shots. Clean groomed nails (neutral or soft color manicure). One simple thin bracelet or delicate ring — minimally distracting. Sleeves rolled to mid-forearm cleanly. The FASHION ITEMS in the box are the visual hero.',
+        notes: 'Fashion haul ASMR: fokus pada suara kain, plastik robek, dan rustle fabric. Tunjukkan tekstur kain, warna asli, dan tag harga. Musik pelan. Link ke semua item di keranjang.',
         emoji: '📦',
         color: '#06B6D4',
         beatStructure: 'Minimal ambient, ASMR-focused, no strong beat',
@@ -94,17 +122,24 @@ export const presets = [
         id: 'haul-belanja',
         name: 'Haul Belanja',
         category: 'Unboxing',
-        vibe: 'Seru, banyak item, shopaholic energy',
+        vibe: 'Seru, banyak item fashion, shopaholic energy',
         bpmRange: '110–130',
-        cameraStyle: 'Medium shot talking-head + cut-away produk',
+        cameraStyle: 'Medium shot talking-head + cut-away fashion items + mini try-on',
         energyLevel: 'High',
         signatureMoves: [
-            'Tumpukan paket di depan — banyak = seru',
-            'Buka satu per satu + mini review tiap item',
-            'Try-on langsung atau demo cepat',
-            'Rating gesture (jempol/bintang) tiap produk'
+            'Tumpukan tas belanja fashion di depan — banyak = seru banget',
+            'Buka satu per satu paket — keluarkan baju/aksesoris dengan flourish',
+            'Mini try-on atau held-against-body langsung per item',
+            'Rating fashion item (1-5 bintang) per item + sebutkan harga'
         ],
-        notes: 'Banyak produk = banyak komisi. Beri rating tiap item. Sebutkan harga. Format "TikTok Shop Haul" sangat viral. CTA di akhir.',
+        movementPrompts: [
+            'Subject sits behind a visible pile of fashion shopping bags and packages. Both hands gesture excitedly at the fashion haul pile — fingers spread counting the bags. Eyes wide with shopping excitement, shoulders bouncing with anticipation energy. Hands tap the nearest bag invitingly, leaning forward toward camera with a conspiratorial "wait till you see what I got" expression.',
+            'Both hands tear open a fashion polybag or delivery box with energetic motion. Pull the garment out with a presentation flourish — shaking it open so the fabric unfurls fully at shoulder height. Hold it up at full arm extension, turning the hanger-style left and right to show both front and back. Head tilts to evaluate color accuracy, eyebrow raise in approval at fabric quality.',
+            'Subject holds each fashion item against their own body in a quick try-on simulation — pressing top to chest, holding jeans at waist, dangling bag at shoulder. Quick confident movements showing how each piece would look when worn. Body language shifts from neutral to genuinely excited when a great fit or color is confirmed. Hands smooth fabric to show material quality.',
+            'Right hand holds up the fashion item at shoulder height while left hand gives clear thumbs-up rating or holds up star-count fingers. Decisive head nod, face expressing genuine enthusiasm for good items or thoughtful assessment for ones needing consideration. Places rated item in a keeper-pile neatly, eager hands dive into the next package immediately.'
+        ],
+        wardrobePrompt: 'Cute TikTok-girl casual base outfit that serves as a clean canvas for trying on / comparing fashion haul items against. Fitted plain tee or cami in neutral (white or beige) so colors of haul items stand out clearly. Hair pulled back to keep face visible. Simple stud earrings. The HAUL ITEMS are the stars.',
+        notes: 'Fashion haul = banyak komisi dari banyak item. Rating tiap baju, tas, sepatu. Sebutkan size yang diambil dan harga. Format "TikTok Shop Fashion Haul" sangat viral. CTA untuk semua item di keranjang.',
         emoji: '🛒',
         color: '#10B981',
         beatStructure: '4/4 upbeat, energetic shopping vibe',
@@ -116,17 +151,24 @@ export const presets = [
         id: 'paket-mystery',
         name: 'Mystery Box',
         category: 'Unboxing',
-        vibe: 'Penasaran, surprise, suspenseful',
+        vibe: 'Penasaran, surprise, suspenseful fashion reveal',
         bpmRange: '95–120',
-        cameraStyle: 'POV handheld, dramatic angle, suspense framing',
+        cameraStyle: 'POV handheld, dramatic angle, suspense framing fashion mystery box',
         energyLevel: 'Medium-High',
         signatureMoves: [
-            'Pegang box — shake/timbang untuk suspense',
-            'Buka pelan-pelan — build anticipation',
-            'Genuine surprise reaction saat reveal',
-            'Value breakdown — "ini worth berapa?"'
+            'Pegang mystery fashion box — shake untuk suspense (ada apa dalem ini?)',
+            'Buka pelan-pelan — build anticipation sebelum reveal outfit',
+            'Genuine jaw-drop saat reveal fashion item tak terduga',
+            'Value breakdown — "ini outfit lengkap cuma sekian?!"'
         ],
-        notes: 'Build suspense sebelum buka. Reaksi harus natural. Tunjukkan total value vs harga beli. Mystery/bundle box dari TikTok Shop.',
+        movementPrompts: [
+            'Both hands grip a sealed fashion mystery package or blind bag box, lifting it and shaking gently side to side. Head tilts curiously, one eyebrow raised — trying to guess what clothing item is inside based on weight and size. Fingers drum on the package, testing its density. Mouth forms a speculative "hmm" expression while looking at camera.',
+            'Fingertips find the seal and begin opening the fashion mystery package with exaggerated deliberate slowness — peeling one flap, pausing, peeking inside with one eye, then looking back at camera with building anticipation. The partial glimpse of fabric color or packaging creates tension. Second hand holds the box steady. Opening pace: 1cm every 1.5 seconds.',
+            'Hands pull out the revealed fashion item — eyes snap wide open, jaw drops in genuine surprise at the garment color, print, or style. Body jerks back 10cm in recoil. Hands shake the unfolded garment excitedly in disbelief, holding it up at full arm extension. Mouth opens in an excited gasp, fabric swings visibly with the motion. Head shakes in delighted amazement at the quality or unexpectedness.',
+            'Subject holds the fashion item at chest level against body, free hand counting the perceived value on fingers — this top, this pants, this accessory. Impressed head nods in calculation. Picks up the full fashion haul from the box and fans them out or stacks them, gesturing with spreading hand at the total outfit value received. "All this for that price" energy.'
+        ],
+        wardrobePrompt: 'Casual relatable home outfit — comfortable oversized hoodie or crewneck in neutral tone (grey, cream, or black). The vibe is "I just got a fashion mystery delivery at home." The FASHION ITEMS being revealed are the visual stars once unboxed.',
+        notes: 'Fashion mystery box format: build suspense sebelum reveal outfit. Tunjukkan item satu per satu. Value breakdown harga total vs harga beli box. Mystery fashion bundle dari TikTok Shop sangat viral.',
         emoji: '🎁',
         color: '#A855F7',
         beatStructure: '4/4 with tension build, dramatic pause before reveal',
@@ -150,7 +192,14 @@ export const presets = [
             'Demo step-by-step cara pakai',
             'Before vs after hasil pemakaian'
         ],
-        notes: 'Problem → Solution format. Tunjukkan cara pakai yang benar. Hasil harus terlihat jelas. Cocok untuk skincare, gadget, alat rumah tangga.',
+        movementPrompts: [
+            'Subject stands in front of a mirror or camera at full-body distance holding the fashion item. Right hand points at their current plain outfit, shaking head slightly in a "this is boring" gesture. Left hand holds the fashion affiliate item next to body for contrast. Expression conveys mild styling frustration, eyebrows raised in a relatable "I have nothing to wear" universal problem.',
+            'Right hand picks up the fashion item and holds it at chest/waist level against body to demonstrate how it looks as a solution. Left hand gestures toward the item in an "and here\'s the answer" open-palm presentation. Both hands then smooth the garment flat to highlight fabric quality and color. Slight confidence smile forms, head lifts as the solution registers.',
+            'Subject demonstrates step-by-step styling technique with the fashion item: hands tuck fabric into waistband cleanly, fingers adjust a collar point, arms roll a sleeve to elbow length, or fingers cinch a belt. Each styling micro-step is performed with deliberate instructional pacing — one hand techniques shown clearly. Camera close enough to capture hand-garment interaction detail.',
+            'Full-body reveal of the completed styled outfit. Subject turns 360° slowly showing all angles. Hands spread open beside body in a "look at this result" presentation gesture. Head tilts confident and styled. Free hand gestures at specific elements — the tuck, the roll, the layering. Holds final pose for CTA overlay.'
+        ],
+        wardrobePrompt: 'Outfit FASHION ITEM dari affiliate sebagai pusat perhatian. Tunjukkan cara styling garment step-by-step: tucking, layering, accessorizing. Demonstrasi dilakukan dengan baju yang sedang dijual — bukan baju lain. Tangan dan tubuh keduanya visible untuk tutorial styling lengkap.',
+        notes: 'Format tutorial styling fashion: problem outfit membosankan → solusi styling tips dengan fashion item ini. Cocok untuk baju, celana, dress. Tunjukkan 2-3 cara styling berbeda dari 1 item yang sama.',
         emoji: '📖',
         color: '#3B82F6',
         beatStructure: '4/4 calm instructional, clear pacing',
@@ -172,7 +221,14 @@ export const presets = [
             'Demo cepat — speed up proses',
             'Mind-blown reaction + hasil akhir'
         ],
-        notes: 'Format "Kenapa baru tau sekarang?!" Hack harus benar-benar berguna. Durasi pendek (15–30s). Sangat shareable = organic reach tinggi.',
+        movementPrompts: [
+            'Subject stands in front of camera in a bland, uninspired basic outfit — plain tee, nothing special. Hands gesture at own clothing in clear frustration: fingers pluck at the fabric with a "this is so boring" expression, shoulders slump. Relatable everyday fashion problem: "I have so many clothes but nothing to wear." Eyebrows furrow in mild styling defeat.',
+            'Hand snaps OR reaches to grab the fashion affiliate item from a hanger or surface nearby — bringing it into frame quickly with a "but wait" energy. Fashion item held up beside face with a triumphant half-smile: "this is the hack." Left hand snaps fingers in a lightbulb gesture. The item clearly visible and looking vibrant.',
+            'Fast-paced fashion hack demonstration: hands style the item in rapid clear steps — tuck front hem only into jeans, add a belt over, drape oversized outer layer, pop collar, tie waist knot. Each styling trick shown in a 1-2 second clip with visible result. Speed-ramp: slow for the key styling moment, fast for transitions. The item transforms across each hack.',
+            'Full outfit reveal with the fashion hack complete — subject steps back from camera showing full-body styled result. Jaw drops slightly in genuine amazement at the transformation. Both hands spread open in a "mind blown" gesture beside face, then point down at the full outfit proudly. Head shakes in disbelief at how good one fashion item can look when styled correctly.'
+        ],
+        wardrobePrompt: 'Subject starts in a deliberately plain base outfit (neutral tee, simple jeans) to establish the "before" problem. The FASHION ITEM being sold is the hero piece introduced as the life hack solution. The demonstration shows the item being styled multiple ways. Final scene: subject wearing the complete styled look as the result of the fashion hack.',
+        notes: 'Format "kenapa baru tau sekarang?!" untuk fashion styling. Hack: 1 baju = 3 cara styling berbeda. Hack: cara tuck yang bikin kurus. Hack: outer yang cocok dengan semua outfit. Sangat shareable.',
         emoji: '💡',
         color: '#F97316',
         beatStructure: '4/4 with surprise beat drop at hack reveal',
@@ -194,7 +250,14 @@ export const presets = [
             'Gentle tapping/patting — soothing moment',
             'Final glow-up reveal — kulit glowing'
         ],
-        notes: 'Niche skincare sangat profitable di affiliate. Tunjukkan tekstur produk. Sebutkan ingredients. Before-after wajib. Link semua produk.',
+        movementPrompts: [
+            'Subject at a dressing area or mirror, holding the new fashion item up to body before wearing it. Fingers trace the garment details — collar, sleeve cut, print pattern. Head tilts in excited evaluation. Expression is anticipatory and genuine — the "let\'s see how this fits" energy before trying on a new fashion purchase.',
+            'Subject now wearing the fashion item, performing the application sequence: shaking out the garment, stepping into pants, pulling top overhead with controlled elegance, or sliding on shoes with a quick finger hook at the heel. Each dressing motion clear and visible. The garment assumes its natural fit and drape on the body.',
+            'Fingertip pads smooth the fashion item gently across shoulders, adjust collar lay, or pat fabric flat at waist — the satisfying garment-settling ritual. Movements are gentle, appreciative, ASMR-of-fabric quality. Eyes close for a moment of genuine "this fabric feels amazing" satisfaction. The material quality is the sensory hero.',
+            'Full-body reveal: subject faces camera/mirror with the complete fashion look. Chin lifts to catch light, slow head turn left to right showing the outfit from multiple angles. One hand rests on hip, other touches sleeve or accessory detail lightly. Final standing pose showing the full styled garment — confident, glowing, camera-ready.'
+        ],
+        wardrobePrompt: 'The FASHION ITEM being sold IS the star — it should be beautifully styled on the subject\'s body with appropriate complementary pieces (shoes, accessories, bottom/top pairing). Hair styled fittingly for the fashion item aesthetic: elegant updo for formal wear, effortless waves for casual, sleek ponytail for sporty. Setting: clean bedroom mirror, vanity area, or white-walled space that keeps focus on the outfit.',
+        notes: 'Niche fashion try-on sangat profitable di affiliate. Tunjukkan bahan (drape, weight, texture). Tunjukkan fit di badan nyata. Before (held up) + After (worn) wajib. Link semua item dipakai.',
         emoji: '✨',
         color: '#F0ABFC',
         beatStructure: '4/4 dreamy, lo-fi aesthetic beat',
@@ -218,7 +281,14 @@ export const presets = [
             'Tutup kamera — transition beat drop',
             'Reveal "after" — dramatic improvement'
         ],
-        notes: 'Angle kamera HARUS sama untuk before-after. Kontras harus jelas. Beat drop = momen reveal. Produk cleaning/beauty/repair paling cocok.',
+        movementPrompts: [
+            'Subject holds the fashion item (or wears it) showing the "before" state — the unstyled, unflattering, or plain way the garment typically looks. Right index finger points at the problem area: boxy fit, awkward length, dull color combination, or uninspiring styling. Camera angle is static and will match exactly for the "after" reveal.',
+            'Both hands style the fashion item with deliberate actions: tuck front hem into waistband smoothly, cinch with a belt, roll sleeves to a specific length, layer over a different piece, or accessorize specifically. Each motion purposeful and clear. Face shows focused concentration on the styling task. The fashion item\'s transformation begins.',
+            'Right hand raises and covers the camera lens with an open palm, fingers spread wide coming toward camera until frame goes dark. This is the transition beat-drop moment for the fashion transformation reveal. The motion is smooth and deliberate.',
+            'Same camera angle as Scene 1. Subject pulls their hand away to reveal the now fully styled fashion outfit. Eyes widen in amazement at the transformation, mouth opens in an impressed gasp. Both hands spread open gesturing at the full outfit — "look at the difference!" The styling transformation contrast with Scene 1 must be striking and immediate.'
+        ],
+        wardrobePrompt: 'BEFORE scene: fashion item worn or held in the most unflattering/basic way possible. AFTER reveal: same fashion item styled beautifully with complementary accessories, proper tuck, appropriate shoes. The visual contrast between before and after IS the content. Both states must use the same affiliate item to show its styling potential.',
+        notes: 'Fashion transformation: cukup styling berbeda antara before dan after. Format paling viral: baju yang "jelek" kalau dipakai salah jadi stunning kalau di-style dengan benar. Angle kamera HARUS sama untuk before-after. Beat drop = momen reveal.',
         emoji: '🔄',
         color: '#34D399',
         beatStructure: '4/4 with dramatic build → beat drop at transformation',
@@ -240,7 +310,14 @@ export const presets = [
             'Beat drop — tutup kamera/snap jari',
             'Full glam reveal — slay pose'
         ],
-        notes: 'Semua produk makeup harus dari affiliate link. Tag setiap produk yang dipakai. Final look harus stunning. Audio glow-up trending.',
+        movementPrompts: [
+            'Subject faces camera in plain everyday casual outfit (the "before" fashion state) — simple, nothing special. Bare face or minimal makeup. One hand gestures at own outfit in a relatable "meh, this is me everyday" shrug. Expression is neutral, real. Hair in basic style. The starting point is authentic: this is what an average day looks like.',
+            'Speed-up fashion styling montage: hands move quickly applying the affiliate fashion items in sequence — pulling an outfit over head, stepping into shoes, clipping on earrings, securing a bag strap. Each item swap creates a visible upgrade. Movements are swift but purposeful. Each fashion item clearly seen as it goes on.',
+            'Right hand snaps fingers sharply at face level OR reaches up and taps shoulder — the transition moment. Sudden energy shift marking the fashion transformation completion. The motion is quick and decisive.',
+            'Full glam fashion reveal — subject now wearing complete styled outfit from affiliate items. Head tilts with confidence, slight runway energy in posture. Slow head turn showing profile, then back to center. Hands do a final accessory adjustment (earring touch, bag strap adjustment, collar pop). Power pose: full-body visible, every fashion piece on display, camera-ready confidence.'
+        ],
+        wardrobePrompt: 'BEFORE scenes: deliberately plain everyday outfit (basic tee, simple jeans, hair simple) as the relatable starting point. AFTER reveal: complete styled outfit using ALL the affiliate fashion items — top, bottom, bag, shoes, accessories. Every item purchasable = multiple commissions. The contrast between before and after must be visually dramatic.',
+        notes: 'Semua item fashion WAJIB dari affiliate link. Tag dan sebutkan setiap fashion item. Final look harus stunning dan aspirational. Audio glow-up trending + fashion niche = viral formula.',
         emoji: '💄',
         color: '#E11D48',
         beatStructure: '4/4 with build → dramatic drop for reveal moment',
@@ -264,7 +341,14 @@ export const presets = [
             'Reveal produk sebagai solusi natural',
             'Tunjukkan hasil + CTA lembut'
         ],
-        notes: 'Soft selling > hard selling. Cerita harus relatable. Produk muncul sebagai solusi, bukan jualan langsung. Hook kuat di 3 detik pertama.',
+        movementPrompts: [
+            'Subject seated comfortably in natural setting, slightly leaning toward camera. Hand gestures casual and conversational — palms open, occasional finger counting. Expression shifts between relatable styling struggle and genuine openness. Eye contact direct and intimate. "Let me tell you about my fashion situation" energy.',
+            'Both hands press lightly against chest in empathetic "I totally get it" gesture, then reach forward toward camera connecting with viewer. Head nods slowly in understanding of the shared fashion struggle. Shoulders relax into a vulnerable "I\'ve been there" posture — the universal experience of having nothing to wear or feeling unstylish.',
+            'Hands reach casually to the side and bring the fashion affiliate item into frame naturally — like remembering a great find, not a sales pitch. The garment held loosely and naturally. Expression brightens with genuine remembered discovery. "And then I found this piece" energy. Subtle warm smile forms as the fashion item arrives on screen.',
+            'Both hands show the fashion item styled on body with gentle pride — smoothing fabric, showing the drape, touching a detail. Calm satisfied smile, single confident nod. Free hand makes a soft encouraging downward gesture toward the imaginary cart link. "I think you\'ll love this too" energy — warm friend recommendation, not sales pressure.'
+        ],
+        wardrobePrompt: 'The FASHION ITEM being sold should be naturally worn by the subject during this storytelling video. The story is woven around wearing or discovering this item. Outfit must feel organic and lived-in, not staged. Warm, achievable color palette. Accessories minimal so the hero garment reads clearly.',
+        notes: 'Fashion soft sell: cerita tentang struggle styling sehari-hari → fashion item ini sebagai solusi natural. Produk muncul sebagai teman yang membantu, bukan iklan. Hook kuat di 3 detik pertama tentang relatable fashion problem.',
         emoji: '📝',
         color: '#6366F1',
         beatStructure: '4/4 emotional, storytelling arc pacing',
@@ -286,7 +370,14 @@ export const presets = [
             'Candid moment menggunakan produk',
             'Cozy evening wrap-up + soft CTA'
         ],
-        notes: 'Produk terintegrasi natural di keseharian. Jangan terasa iklan. Aesthetic vlog style. Cocok untuk F&B, skincare, fashion, gadget.',
+        movementPrompts: [
+            'Subject in morning lifestyle setting — golden hour light, stretching arms upward in a natural wake-up motion. Arms interlaced above head, spine arching gently. Then walks leisurely to wardrobe or dressing mirror with intentional effortless style. The affiliate fashion item hangs visibly on a doorknob or hanger in the background — naturally placed.',
+            'Fashion item integrated into daily scene organically: subject reaches for the affiliate garment naturally from wardrobe, slips it on over current outfit, or picks up the affiliate bag as part of leaving the house. The fashion item appears as a natural lifestyle choice, not a product showcase. Movements flow with morning routine energy.',
+            'Candid mid-action lifestyle moment while wearing the full affiliate fashion outfit: reading in a sunlit chair, walking through a market, sharing coffee in a café setting, or sitting cross-legged on bed. Body language is relaxed and at ease in the fashion items — the garments clearly comfortable and flattering in real movement.',
+            'Evening cozy wrap-up wearing the complete affiliate fashion ensemble. Subject settled into a comfortable, beautiful spot. The fashion items still on — showing the outfit\'s day-long versatility and comfort. Slow appreciative look down at outfit, then warm eye contact with camera. One hand smooths the fabric gently. "This outfit did everything today" energy.'
+        ],
+        wardrobePrompt: 'Aesthetic lifestyle progression entirely using affiliate fashion items: morning scene in affiliate loungewear or soft dressing gown, daytime in the hero affiliate outfit (top + bottom + accessory), evening in affiliate knitwear or cozy outer layer. Each phase showcases different affiliate pieces to maximize commission potential. All items must look aspirational and effortless.',
+        notes: 'Fashion item terintegrasi natural di keseharian. Jangan terasa iklan. Lifestyle vlog aesthetic. Tunjukkan outfit versatility — 1 outfit untuk multiple occasion: morning, day, evening. Cocok untuk outer, inner, dress.',
         emoji: '🌅',
         color: '#FB923C',
         beatStructure: '4/4 lo-fi chill, aesthetic vlog beat',
@@ -308,7 +399,14 @@ export const presets = [
             'Kasih detail spesifik yang meyakinkan',
             'Rekomendasi tulus + arahkan ke link'
         ],
-        notes: 'Semakin natural semakin dipercaya. Jangan terlalu scripted. Tunjukkan bukti nyata (foto progress, dll). Format UGC testimonial.',
+        movementPrompts: [
+            'Subject sits in a natural home setting, dressed in the affiliate fashion item they are reviewing. Casual conversational energy, speaking directly to camera with hands gesturing naturally at chest level. Palm-up openness when making claims. Both hands occasionally touch or gesture to the fashion item being worn — pointing at the collar, touching the fabric sleeve, gesturing at the fit.',
+            'Subject holds up the fashion item\'s packaging or tag showing origin, or holds their phone showing the original product listing photo side-by-side with the actual delivered item. The "this is exactly what I ordered" evidence moment. Eyebrows raise in genuine "see? no gimmicks" expression. Finger taps the item label or size tag for emphasis.',
+            'Both hands come together in earnest clasping as subject shares specific quality details: pointing at stitching quality, pulling at seams to demonstrate strength, running finger along the hem, feeling the fabric weight. Leans forward 10° for the key credibility-building moment. Expression is honest and engaged. Eye contact steady.',
+            'Genuine warm smile and hands open toward camera in a giving recommendation gesture. Wearing the affiliate fashion item confidently in the final shot. Single confident nod. Right index finger points gently downward toward cart link area. "If this worked for me it can work for you" energy — authentically recommending a fashion find.'
+        ],
+        wardrobePrompt: 'Subject wears the AFFILIATE FASHION ITEM being reviewed throughout the entire testimonial video — demonstrating that they actually wear and use it in real life. The item should look naturally worn-in but still looking good. Zero effort additional styling so the garment speaks for itself. Very casual, authentic setting.',
+        notes: 'Fashion testimonial: semakin natural semakin dipercaya. Tunjukkan foto saat first delivery vs sekarang. Sebutkan berapa lama sudah dipakai. Bukti nyata = foto usage, tag sosmed. Format UGC testimonial fashion.',
         emoji: '💬',
         color: '#14B8A6',
         beatStructure: 'Minimal background, conversation-paced',
@@ -332,7 +430,14 @@ export const presets = [
             'Countdown jari (3-2-1) — urgency!',
             'Grab produk + "checkout sekarang!" pose'
         ],
-        notes: 'Hook HARUS menghentikan scroll. Tunjukkan harga asli vs diskon. Tekankan stok terbatas/waktu terbatas. CTA keras di akhir.',
+        movementPrompts: [
+            'Subject lunges toward camera with urgent energy — right index finger pointing directly at the lens at full arm extension. Left hand grabs a fashion item (shirt, bag, or shoes) and thrusts it toward camera simultaneously. Eyes laser-focused, eyebrows raised, mouth open mid-shout. Full alert body language: shoulders forward, weight on toes, intense direct stare: "THIS IS THE DEAL!"',
+            'Both hands hold up the fashion item — right hand raised high showing original price (spread fingers indicating large number), left hand drops low showing discounted price while holding the garment visibly. Head shakes in disbelief at the fashion deal. Dramatic eyebrow raise, "can you believe this outfit price" expression.',
+            'Right hand raised, fingers extended. Countdown begins: fold pinky (3), fold ring finger (2), fold middle finger (1) — each fold deliberate and rhythmic. Left hand clutches the fashion item against chest possessively. Face matches the urgency: increasingly wide eyes, tension building in jaw. Final fist pump on "GO!" with explosive forward energy.',
+            'Both hands grab the fashion item from the surface with swift decisive motion, clutching it to chest possessively. One hand then thrusts the outfit toward camera in a hero presentation shot. Mouth wide in excited call-to-action, other hand points repeatedly downward at the cart icon area. "Grab your size before it\'s gone" maximum FOMO energy.'
+        ],
+        wardrobePrompt: 'Bold attention-grabbing outfit in a vibrant solid color (red, bright yellow, electric blue) that POPS on mobile screens. Ideally WEARING an affiliate fashion item as the urgency outfit itself. The person must visually stand out instantly. No competing patterns, just high-energy color.',
+        notes: 'Hook HARUS menghentikan scroll. Fashion flash sale: tunjukkan harga asli vs diskon. Tekankan stok terbatas, size tinggal sedikit. CTA keras: "pilih size sekarang, checkout sekarang!" Sangat efektif untuk promo Harbolnas.',
         emoji: '🔥',
         color: '#EF4444',
         beatStructure: '4/4 fast tempo, urgency-building beat',
@@ -354,7 +459,14 @@ export const presets = [
             'Demo singkat keunggulan produk',
             'Arahkan jari ke bawah — "klik keranjang kuning!"'
         ],
-        notes: 'Direct commerce format. Sebutkan harga pasti. Tunjukkan rating/review sebagai social proof. CTA ke keranjang kuning harus jelas dan berulang.',
+        movementPrompts: [
+            'Subject holds the FASHION ITEM (garment, bag, or shoes) at chest level with both hands, presenting it forward toward camera fully displayed. TikTok Shop shopping interface may be visible in background on a phone/screen. Head nods in recommendation, eyebrows raised invitingly. "Look what I found on TikTok Shop" energy with a slight forward lean.',
+            'Right hand taps the fashion item\'s tag/label or a phone screen showing the listing\'s high rating stars. Left hand holds the garment steady for comparison viewing. Expression shifts to impressed: eyes widening slightly at five-star reviews, definitive nod of approval at the number of sold units. Finger circles the rating highlight.',
+            'Both hands hold the fashion item against body in a quick try-on demonstration — pressing the garment to chest showing size and color accuracy to the listing photo. Confident efficient movements showing fabric quality and true-to-photo delivery. Subtle satisfied nod as the product proves itself. Quick but clear fashion fit check.',
+            'Right index finger points firmly downward repeatedly in clear rhythmic "click keranjang kuning" gesture. Left hand holds up the fashion item beside face as the CTA product. Direct intense eye contact. Mouth clearly forming the call-to-action words. Three to four firm downward taps toward the cart icon area. Fashion item clearly visible throughout.'
+        ],
+        wardrobePrompt: 'Clean casual-smart look — ideally WEARING an affiliate fashion item as proof of quality. The garment being reviewed should be naturally worn or held up side-by-side with the reviewer wearing a matching piece. Trustworthy, put-together appearance communicating "I actually bought and love this fashion item."',
+        notes: 'Direct commerce format. Fashion: sebutkan harga pasti, tunjukkan rating/review, sebutkan size yang dipakai. CTA ke keranjang kuning harus jelas. "Baju ini sold 10ribu+ dan ini kenapa" format sangat efektif.',
         emoji: '🧺',
         color: '#FBBF24',
         beatStructure: '4/4 catchy, commercial jingle energy',
@@ -376,7 +488,14 @@ export const presets = [
             'Reveal harga bundling — "tapi dengan bundling cuma..."',
             'Tunjukkan setiap item + kegunaan singkat'
         ],
-        notes: 'Breakdown value setiap item. Tunjukkan penghematan nyata. Format "berapa yang kamu hemat" sangat engaging. Cocok untuk bundle deals.',
+        movementPrompts: [
+            'Both hands arrange multiple FASHION ITEMS on a clean surface in organized outfit-bundle layout — top, pants/skirt, bag, shoes, and accessories displayed together as a complete look. Fingers adjust spacing and alignment into an aesthetic flat-lay or standing arrangement. Hands pull back to show the complete outfit collection from medium distance. Satisfied nod surveying the fashion lineup.',
+            'Right hand picks up fashion items one by one, holding each at eye level briefly. Left hand counts on fingers with each item — thumbing each fingertip to tally the individual cost of each garment/accessory. Eyebrows gradually rising as the wardrobe total grows. Expression shows increasing surprise at individual fashion item pricing.',
+            'Both hands come together in a dramatic "wait for it" clasp, then spread apart revealing the bundle deal price. Eyes widen in genuine excitement at the fashion bundle savings. Head shakes in disbelief. Hands gesture from the expensive individual prices (high) to the bundle price (low) with a downward sweeping motion. "You\'re getting a whole outfit for this price" energy.',
+            'Hands now pick up each fashion item in sequence for a quick showcase — holding each garment/accessory at camera level, showing the fabric quality, draping the top against body, dangling the bag at shoulder height. Efficient, organized, building the value perception with each fashion item reveal.'
+        ],
+        wardrobePrompt: 'Smart casual — clean fitted top in a solid calm color (slate blue, white, or cream). The FASHION BUNDLE ITEMS being sold are spread as a flat-lay or arranged artfully and are the visual heroes. Reviewer outfit should not compete. "Outfit curator" energy making the full look look desirable together.',
+        notes: 'Fashion bundle: breakdown value tiap item (baju + celana + tas + aksesori). Tunjukkan total harga satuan vs harga bundle. "Beli 3 hemat sekian" format sangat engaging. Cocok untuk outfit set, koordinat fashion.',
         emoji: '💰',
         color: '#22C55E',
         beatStructure: '4/4 with price reveal accents, calculator energy',
@@ -400,7 +519,14 @@ export const presets = [
             'Fingers gliding over product texture — shallow DOF blur background',
             'Final hero shot — volumetric light rays + product center frame'
         ],
-        notes: 'Formula: [Camera Movement & Lens] + [Aksi & Ekspresi Mikro] + [Fokus Interaksi Produk] + [Tata Cahaya Sinematik] + [Render & Fisika Tekstur]. Designed untuk psikologi konsumen. Aktifkan Cinematic Mode di Advanced Options.',
+        movementPrompts: [
+            'Extreme close-up: FASHION ITEM (garment fabric grain, shoe texture, bag leather surface, jewelry detail) fills 70% of frame at macro distance. Camera executes ultra-slow push-in (1cm/sec) toward the fashion item\'s most visually striking detail — a stitch line, a weave pattern, a metallic buckle. Subject\'s fingertips barely visible at frame edges, presenting the item. Shallow DOF creates creamy bokeh separating the hero fashion piece from everything else.',
+            'Rack focus from fashion item surface to subject\'s face at medium close-up. Subject is WEARING the affiliate fashion item. Eyes soften with genuine satisfaction — slight narrowing of orbicularis oculi (Duchenne smile), corners of mouth lift 3mm. Single deliberate nod — chin drops 15°, pauses, returns. Breathing visible: slow calm exhale. The micro-expression sells the fashion item\'s quality authentically.',
+            'Subject\'s fingers — clean, groomed, possibly with elegant nail color — make contact with the fashion item\'s surface with deliberate sensory intention. Fingertips glide along the fabric, leather, or material at 2cm/sec, following contours and seam lines. Shallow DOF tracks with the finger, background dissolving into creamy blur. The touch is reverent not casual — communicating premium fashion quality through haptic interaction.',
+            'Fashion item placed at center frame — folded garment on clean surface, bag heel-down on pedestal, shoes in V-formation, or jewelry on velvet. Volumetric light rays stream from behind/above the fashion item creating visible light beams through atmospheric haze. Subject\'s hands frame the item from both sides. Final 2-second hero hold — the fashion item is the undeniable star.'
+        ],
+        wardrobePrompt: 'Clean minimal fitted top in solid dark color (black, charcoal, or deep navy) — no logos, no patterns, nothing that competes with the FASHION ITEM as visual hero. Fabric matte to avoid reflective glare under cinematic lighting. The fashion item being sold is the star; the subject is the elegant supporting framing element. Nails clean or with elegant neutral polish.',
+        notes: 'Formula cinematic fashion: [Camera Movement & Macro Lens] + [Ekspresi Mikro] + [Sentuhan Kain/Material] + [Hero Product Light]. Ideal untuk fashion premium: tas branded, sepatu eksklusif, baju high-quality. Aktifkan Cinematic Mode.',
         emoji: '🎬',
         color: '#DC2626',
         beatStructure: '4/4 cinematic, slow-build tension with subtle crescendo',
@@ -422,7 +548,14 @@ export const presets = [
             'Smoothly interact with metallic/matte product — pinpoint focus on texture',
             'Slow orbit reveal seluruh desk setup — volumetric warm light dari screen'
         ],
-        notes: 'Skenario: promosi elektronik/kebutuhan meja kerja. Cinematic rim lighting highlighting jawline, volumetric warm light from screen. Visible skin texture, photorealistic. Aktifkan Cinematic Mode.',
+        movementPrompts: [
+            'Camera begins at macro distance on the hero FASHION ACCESSORIES or hero garment displayed as a desk/vanity flat-lay — fabric texture fills the frame, stitching details visible. Slow push-in at 1cm/sec toward an accessory detail (zipper pull, embroidery, button). Subject\'s hands enter frame from below, fingertips making first reverent contact with the fashion item\'s surface. Cinematic rim lighting catches the fabric edge.',
+            'Medium close-up of subject in full outfit at a vanity or mirror setup. Expression is calm confidence — slight upward curve at lip corners, gentle self-admiring nod. Eyes scan the outfit with appreciation, then settle on camera with quiet collected fashion energy. One hand rests naturally on waist or touches a necklace/earring accessory with familiar ease.',
+            'Subject\'s right hand reaches for the fashion accessory — bag, watch, ring, scarf — with slow deliberate motion. Fingertips make contact and slide across the material surface — leather grain, woven texture, metallic clasp. Camera rack-focuses to follow the fingertip contact point. Left hand adjusts the outfit or smooths the garment naturally.',
+            'Camera begins slow 180° orbit around the full outfit or fashion item display. Each element of the styled look receives a moment of focus as the orbit passes — shoes heel-detail, bag logo, garment drape, accessory shimmer. Subject stands confidently in the complete styled look, fashion item clearly the hero throughout the reveal orbit.'
+        ],
+        wardrobePrompt: 'Complete affiliate fashion outfit worn by subject for the cinematic reveal — garment on body, accessories styled, shoes visible if full-body. The OUTFIT IS the product. Cinematic styling: tonal color palette, clean silhouette, every piece deliberate. Subject looks aspirational but achievable. Hair styled to complement the fashion item\'s aesthetic.',
+        notes: 'Fashion cinematic vibe: promosi aksesori premium fashion, tas branded look, perhiasan, atau outfit high-quality. Rembrandt lighting highlighting garment texture. Aktifkan Cinematic Mode.',
         emoji: '🖥️',
         color: '#1E40AF',
         beatStructure: '4/4 ambient lo-fi, minimal with subtle tech atmosphere',
@@ -444,6 +577,13 @@ export const presets = [
             'Eyes widening in realization — genuine surprise at product result',
             'Final glow reveal — rim light catching cheekbone, product hero placement'
         ],
+        movementPrompts: [
+            'Extreme close-up of beauty product cradled in subject\'s fingertips — product fills 60% of frame with creamy dreamy background blur. Fingers are clean with neutral manicure, skin moisturized and glowing. Slow product tilt catches Rembrandt light on the packaging surface. The hold is delicate, precious, aspirational.',
+            'Subject\'s fingertips apply the product to their own skin — cheekbone, décolletage, or back of hand. The application motion is slow and luxurious: spreading, patting, smoothing. Camera close enough to see subsurface scattering in the skin as light passes through translucent product layer. Visible pores and skin texture — hyper-realistic, not airbrushed.',
+            'Rack focus pulls from the product/application area to subject\'s eyes at close-up distance. Eyes widen slowly in genuine pleasant realization — pupils dilate fractionally, upper lids lift, inner eyebrows raise. The "it\'s actually working" moment. Lips part slightly in surprised satisfaction. The discovery is authentic, not performed.',
+            'Final composition: Rembrandt rim light catches the high cheekbone creating a luminous edge. Subject\'s face at 30° angle to camera, product placed in the near foreground slightly out of focus. The glow on skin is the hero — dewy, glass-skin finish. Eyes meet camera with quiet luxury confidence. Hold for 2 seconds.'
+        ],
+        wardrobePrompt: 'Minimal beauty editorial look — bare shoulders with thin-strap silk camisole in champagne, cream, or soft blush. No distracting neckline details. Skin should be the canvas: décolletage, neck, and face visible and well-lit. Hair pulled back loosely or pinned behind ears to show jawline and cheekbone structure. Zero competition with the beauty product.',
         notes: 'Untuk skincare/makeup premium. Rembrandt lighting sculpts wajah. Visible skin pores, hyper-realistic. Subsurface scattering pada kulit. Narrow DOF isolasi produk dari background.',
         emoji: '💎',
         color: '#DB2777',
@@ -466,6 +606,13 @@ export const presets = [
             'First bite reaction — eyes widening, subtle satisfied micro-expression',
             'Hero overhead shot — volumetric warm light through steam particles'
         ],
+        movementPrompts: [
+            'Macro close-up: camera pushes slowly into food surface detail — visible texture of crust, sauce glisten, rice grain, or fruit cross-section. Steam rises from the hot surface in visible wisps, catching the warm side light. Condensation droplets on cold surfaces. Camera at low angle making the food monumental and appetizing.',
+            'Slow-motion pour or drizzle sequence — liquid (sauce, honey, cream, oil) cascades from above in a controlled stream. Physics visible: the liquid catches light as it descends, pools and spreads on contact surface, creating a glossy puddle. Hands holding the pouring vessel are steady, controlled. The pour speed is deliberate and sensory.',
+            'Subject takes the first bite — chopsticks/fork/fingers lifting food to mouth at slow pace. Close-up captures the moment of bite: eyes widen fractionally in pleasant surprise, then close briefly in savoring pleasure. Slow chewing, slight head tilt of appreciation. Eyebrows raise in "this is genuinely good" micro-expression. Free hand may touch chest in delighted response.',
+            'Top-down overhead hero shot: full dish composition visible with garnishes, utensils, and supporting items arranged aesthetically. Warm volumetric light streams from one side, illuminating steam particles rising from the food surface. Subject\'s hands may reach in from frame edge with utensils. The food is the absolute centerpiece — styled, lit, and composed for maximum appetite appeal.'
+        ],
+        wardrobePrompt: 'Minimal and clean — solid neutral toned top or apron in earthy colors (cream, sage, warm grey). Only hands and forearms prominently visible in most scenes. Nails clean, no distracting jewelry on hands. If face is visible: natural warm makeup, hair tied back. The food is always the star — the person is supporting context.',
         notes: 'Food content cinematic: volumetric steam, slow-motion pour/drip, subsurface scattering on liquids. Macro texture detail (remah, serat, titik air). Pencahayaan side-angle untuk dimensi.',
         emoji: '🍽️',
         color: '#B45309',
@@ -488,6 +635,13 @@ export const presets = [
             'Close-up fabric detail — texture, weave pattern, button under light',
             'Power pose freeze — rim light silhouette, editorial-grade composition'
         ],
+        movementPrompts: [
+            'Subject walks confidently toward camera with deliberate runway stride — one foot placed directly in front of the other, hips leading with subtle sway. Arms swing naturally with controlled elegance. Fabric of the outfit flows with the walking momentum: hem swaying, sleeve fabric catching air, collar moving with each stride. Camera tracks backward maintaining distance. Rim lighting outlines the silhouette.',
+            'Camera executes a slow 180° orbit around the stationary subject who holds a relaxed confident pose — weight on one hip, one hand on waist or at side. The orbit reveals the full outfit from front through profile to three-quarter back view. Background bokeh shifts dramatically as the camera moves, creating visual depth. Subject holds eye contact with camera lens throughout the orbit.',
+            'Extreme close-up of fabric detail under directional light — thread pattern, weave structure, button or zipper catch. Subject\'s hand enters frame and touches the fabric surface, fingers running along a seam or flipping a lapel to show lining. Light rakes across the surface texture at a low angle, highlighting every fiber and stitch. The craftsmanship tells the value story.',
+            'Subject freezes in a strong editorial power pose — shoulders squared, chin lifted 10°, weight planted. Dramatic rim lighting cuts a sharp bright edge along the body silhouette against a darker background. The composition follows rule-of-thirds with negative space. Hold for 2 seconds in perfect stillness — the fashion editorial moment. Every garment line is intentionally posed.'
+        ],
+        wardrobePrompt: 'The outfit IS the product — observe the reference image carefully and describe every garment piece in detail: fabric type (cotton, silk, denim, leather, linen), color and shade, fit (slim, oversized, draped), and construction details (seams, buttons, zippers, stitching). Accessories must be noted: belt style, watch, rings, necklace, bag. The fashion piece must be the visual hero with accurate fabric physics showing how the material drapes, flows, and responds to movement.',
         notes: 'Fashion film style: dynamic tracking, fabric physics (drape, flow, momentum). Rim lighting menggaris tubuh. Material render: thread-level fabric detail. Aspiration-driven untuk konversi fashion.',
         emoji: '👔',
         color: '#7C3AED',
@@ -512,6 +666,13 @@ export const presets = [
             'Zoom ke detail/tekstur/label',
             'Lifestyle shot — produk in context'
         ],
+        movementPrompts: [
+            'Both hands lift the product smoothly from a surface, raising it to eye level in a centered hero shot. Fingers grip with elegant confidence — thumb on front, four fingers supporting back. Arms extend partially forward presenting the product to camera. Head positioned just behind/above the product creating a human scale reference. Studio lighting highlights the product\'s primary face.',
+            'Hands begin slow 360° rotation of the product — turning it smoothly and continuously at approximately 8 seconds per full rotation. Fingers maintain a steady grip allowing each side, edge, and back to face the camera in sequence. The rotation is butter-smooth with no wobble or jerk. Product catches light differently at each angle, revealing shape and material.',
+            'Camera pushes in to macro close-up of the product\'s most impressive detail — logo emboss, texture pattern, material quality, label typography. Subject\'s thumb or fingertip may enter frame to indicate the specific feature. Light rakes across the surface at a low angle emphasizing dimensionality and craftsmanship.',
+            'Product photographed or filmed in its natural use-context — on a styled desk, in a bathroom shelf, being worn, part of a curated flat-lay. Subject\'s hand reaches in and interacts with it naturally: picking it up, opening it, placing it in context. The setting communicates lifestyle aspiration. Product is the centerpiece of a composed visual story.'
+        ],
+        wardrobePrompt: 'Minimal clean look — solid dark or neutral top, only hands prominently visible in most shots. For lifestyle context shots: outfit matches the product\'s target demographic and setting. Clean hands with trimmed nails, no distracting rings or bracelets. Solid unpatterned background behind the product.',
         notes: 'Kualitas visual = selling point. Lighting harus bagus. Tunjukkan packaging, tekstur, detail. Cocok untuk produk premium/beauty/fashion.',
         emoji: '🎬',
         color: '#7C3AED',
@@ -534,6 +695,13 @@ export const presets = [
             'Waktu/timer visible — real proof',
             'Hasil akhir + honest reaction'
         ],
+        movementPrompts: [
+            'Subject holds the sealed, brand-new product toward camera — packaging intact, seal visible. Fingers tap the seal or point at the "new" indicator. Then tears open the seal on camera, removing all packaging in real-time. The unboxing is quick and functional, not ceremonial — establishing credibility that this is a fresh, unused product.',
+            'Hands begin active real-time testing of the product — applying, scrubbing, pressing, or activating it on the target surface or area. All movements are practical and purposeful, no shortcuts. The process unfolds in real-time without editing — every second of effort is visible. Hands work systematically: left-to-right, top-to-bottom, thorough coverage.',
+            'Timer or clock is visible in frame (phone timer, actual clock, or verbal counting). Subject glances at timer periodically, then back to the work. The passage of time is honest and transparent. Hands continue the test process. Occasional look at camera to share the in-progress status — raised eyebrows of interest at developing results.',
+            'Hands pull back to reveal the final result of the test. Subject leans back and surveys the outcome. Genuine honest facial reaction: impressed eyebrow raise, satisfied nod, or surprised widened eyes depending on the result. Hands gesture at the result area in a "look at this" presentation. Then holds up the product beside the result for final association.'
+        ],
+        wardrobePrompt: 'Practical simple outfit — plain t-shirt with rolled sleeves ready for work. No special effort in appearance; the authenticity of being "I literally just tested this right now" is the visual message. Clean but unfussy. The process and result are the entire visual focus.',
         notes: 'Satu take tanpa editing = trust tinggi. Timer/clock visible. Produk cleaning, gadget, tools paling cocok. "No skip no edit" format.',
         emoji: '⏱️',
         color: '#0EA5E9',
@@ -556,6 +724,13 @@ export const presets = [
             'Genuine taste reaction — deskripsi rasa',
             'Rating + rekomendasi + link affiliate'
         ],
+        movementPrompts: [
+            'Both hands hold the food packaging, turning it to show the front label, branding, and appearance. Then open it with anticipatory energy — tearing, peeling, or lifting the lid. Eyes widen at the revealed food inside. Hands present the opened food forward toward camera, tilting to catch the light on the surface texture. First visual impression moment.',
+            'Chopsticks, fork, or fingers pick up a generous portion and lift it to mouth level — the food passes through frame in close-up showing texture, steam, sauce drip. Mouth opens and takes the first bite with genuine appetite. Chewing begins slowly, savoring. Eyes may close briefly in concentration on the flavor. ASMR-worthy crunch or chew sounds implied.',
+            'Eyes snap open with genuine taste reaction — could be delighted surprise (eyebrows up, eyes wide, excited nodding), thoughtful evaluation (head tilt, pursed lips, slow nod), or overwhelmed pleasure (eyes squeeze shut, hand covers mouth, body rocks back). Free hand gestures expressively while describing flavors. The reaction must feel unrehearsed and authentic.',
+            'Subject holds up fingers for rating (1-5 stars) at head height, or gives clear thumbs up/down. Definitive nod matching the verdict. Then picks up the food/packaging again and holds it beside face for product association. Free hand points downward at the imaginary link area with encouraging "go try this" energy. Warm genuine smile.'
+        ],
+        wardrobePrompt: 'Simple casual outfit — plain comfortable top in a solid color that does not clash with food colors. A napkin or small towel visible nearby for authenticity. No heavy makeup. Hair pulled back or away from face for eating shots. The visual focus is 100% on the food and the genuine facial reactions.',
         notes: 'Food content selalu engaging. Tunjukkan tekstur makanan. ASMR eating sound optional tapi powerful. Honest reaction = trust.',
         emoji: '🍜',
         color: '#DC2626',
@@ -580,6 +755,13 @@ export const presets = [
             'Pose beberapa angle — tunjukkan fit',
             'Rating outfit + styling tips'
         ],
+        movementPrompts: [
+            'Subject holds the garment(s) on a hanger or neatly folded at chest level, presenting the flat/unworn state. Other hand smooths the fabric to show material quality. Head tilts in evaluative anticipation — "let\'s see how this looks." The garment colors, patterns, and details are clearly visible in this pre-try-on display.',
+            'Quick style transition: subject\'s hand snaps fingers at camera level — crisp audible snap — and the next frame shows the same subject now wearing the outfit. The snap marks the costume change moment. Standing at full-body distance from a mirror or camera, the outfit is fully visible head-to-toe. Initial reaction to own reflection.',
+            'Subject strikes three distinct poses to showcase fit from different angles: (1) Front-facing with hands at sides showing overall silhouette, (2) Turn to profile showing how the garment drapes in side view, (3) Three-quarter back angle showing fit from behind. Each pose held for 1.5 seconds with subtle weight shift and confident posture. Head turns to check each angle.',
+            'Subject faces camera and holds up rating fingers (1-5 stars) at head level with satisfied expression. Then hands gesture at specific outfit details while sharing styling tips — tugging a tucked hem, adjusting a rolled cuff, pointing at a color combination that works. Confident knowing nods. Final full-body pose with hands on hips — the "would I buy this? YES" stamp.'
+        ],
+        wardrobePrompt: 'The outfit IS the product being showcased — observe the reference image and describe every piece being tried on: garment type, fabric, color, fit, and how it falls on the body. For the "before" scene: simple basic underlayer (white tee or tank) that provides contrast. For "after/wearing" scenes: the full affiliate outfit styled exactly as intended with appropriate shoes and accessories to complete the look.',
         notes: 'Full-body shot WAJIB. Tunjukkan detail (bahan, jahitan). Beri styling tips. Sebutkan size yang dipakai. Multiple outfit = multiple commission.',
         emoji: '👗',
         color: '#E879F9',
@@ -602,6 +784,13 @@ export const presets = [
             'Pose OOTD 3 angle (depan, samping, detail aksesoris)',
             'Pointing ke produk + CTA lembut "cek keranjang kuning"'
         ],
+        movementPrompts: [
+            'First frame: subject at selfie-arm distance, direct fierce eye contact with the lens — one eyebrow slightly raised, subtle confident smirk, chin tilted down 5° for the "looking through lashes" effect. The hook is pure attitude and confidence delivered in under 1 second. Hand holding phone visible at arm extension in selfie perspective.',
+            'Subject performs a playful hair flip — head turns left, hair swings right with visible flow momentum. Or: small hand wave beside face, fingers waving in sequence from pinky to thumb, following the music beat. Shoulders shimmy slightly with the rhythm. Expression is playful and unbothered — the "effortless cool girl" energy. Natural genuine smile.',
+            'Three styled poses in quick succession: (1) Front-facing mirror shot with one hand on hip, pop stance, showing full outfit. (2) Side profile angle tilting chin up, showing silhouette and earring/accessory detail. (3) Close-up detail shot — fingers touching necklace, bracelet, or bag strap. Each pose sharp and confident with beat-synced transitions.',
+            'Subject holds up the featured product at face level with one hand, other hand\'s index finger points gently downward toward the imaginary cart link. Playful encouraging expression — slight eyebrow raise, gentle head tilt, warm inviting smile. Not pushy or salesy, more like a friend sharing her find. Final confidence pose with product.'
+        ],
+        wardrobePrompt: 'Trendy Gen-Z feminine outfit — observe the reference image and replicate: could be crop cardigan over fitted top, high-waisted wide-leg jeans or mini skirt, chunky sneakers or platform shoes. Accessories are key: small hoop or statement earrings, layered thin necklaces, hair clips or scrunchie, minimal rings. Hair styled but not overdone — soft waves, curtain bangs, or sleek ponytail. The entire vibe is "I just threw this together" but clearly curated.',
         notes: 'Cocok untuk niche fashion, beauty, dan aksesoris. Jaga ekspresi ceria dan relatable. Pakai audio tren cewek TikTok agar feel FYP.',
         emoji: '💅',
         color: '#FB7185',
@@ -624,6 +813,13 @@ export const presets = [
             'Close-up detail bahan, jahitan, dan aksesoris',
             'Final catwalk 2-3 langkah + skor outfit'
         ],
+        movementPrompts: [
+            'Camera starts at ground level on the shoes — detailed low-angle shot showing shoe type, color, and design. Then tilt-pans upward slowly: from shoes to ankles (socks/bare), past legs (pants/skirt hem), up the torso (belt, shirt/jacket details), to face level. Each layer of the outfit gets a moment of visual attention during the upward scan. Subject stands staggered stance for visual interest.',
+            'Subject demonstrates the outfit\'s layering by showing each piece: opens jacket to reveal the shirt underneath, pulls out tucked hem to show the tuck technique, adjusts belt position, rolls or unrolls a sleeve cuff. Each layer interaction is deliberate and instructional. Hands work confidently, showing styling knowledge — quick but clear movements.',
+            'Extreme close-up of individual outfit details: (1) Fabric texture zoomed in showing weave/knit pattern, (2) Stitching quality at seams or hems, (3) Accessory detail — watch face, ring, belt buckle, bag hardware. Subject\'s fingers may enter frame to touch/indicate the specific detail being showcased. Each detail shot is steady and well-lit.',
+            'Subject takes 2-3 confident catwalk steps toward camera — purposeful stride with one foot crossing in front of the other for runway effect. Stops in a power pose, adjusts jacket/collar with a final confident touch. Holds up rating fingers (score out of 10) beside face with a self-assured smile. Chin up, shoulders back — full outfit on display for the verdict moment.'
+        ],
+        wardrobePrompt: 'Complete head-to-toe outfit as seen in the reference image — describe EVERY piece: shoes (type, color, brand reference), socks/hosiery, bottoms (fit, material, wash/color), belt, top (style, fit, color, tuck), outer layer (jacket/cardigan type and fit), accessories (watch, rings, necklace, bag, hat). The outfit must be consistent and cohesive across every scene. This is a fashion review — the outfit accuracy is EVERYTHING.',
         notes: 'Format OOTD check fokus ke detail styling. Sebutkan size, warna, dan item utama supaya mudah dicari di affiliate link. Tambahkan tips mix & match singkat.',
         emoji: '👠',
         color: '#38BDF8',
@@ -646,6 +842,13 @@ export const presets = [
             'Micro-tilt kiri-kanan mengikuti beat tanpa mengubah angle utama',
             'Tahan pose 1 detik di akhir untuk CTA/overlay teks, tanpa HP terlihat'
         ],
+        movementPrompts: [
+            'Camera positioned at 35-45° above the subject looking down — the classic selfie perspective but with NO phone or device visible in frame. Subject looks upward into the lens with inviting eye contact. Slight wide-angle perspective elongates the neck and narrows the chin. Background visible below: blurred floor, bed, or scenic backdrop. Hair falls naturally with gravity.',
+            'Subject leans upper body forward 10-15° toward the camera while maintaining upward eye-line contact. This forward lean creates dramatic perspective depth — shoulders appear broader, face appears more prominent. Chin stays slightly down for the flattering selfie angle. Subtle shift of weight from center to one hip creating asymmetry. Expression is warm and naturally confident.',
+            'Gentle micro-tilt movements — head tilts 5° left, pauses on beat, tilts 5° right, pauses on beat. The main camera angle stays constant (top-down selfie perspective). Shoulders may mirror the head tilt direction slightly. Expression shifts subtly between tilts: slight smile variation, eye intensity change. Movements are minimal and controlled — just enough to create rhythm without breaking the composition.',
+            'Final held pose — subject settles into their best selfie angle, expression locks into a confident inviting look (slight smile, relaxed eyes, chin positioned). Body completely still for 1.5-2 seconds. This static hold is designed for text overlay or CTA placement. NO phone or device visible anywhere in frame — the camera is implied to be off-screen or mounted. Clean composition for graphics.'
+        ],
+        wardrobePrompt: 'Outfit exactly matching the reference image — describe precisely: neckline shape and detail visible in the selfie crop (this is what the viewer sees most), shoulders/sleeve style, visible accessories (earrings, necklace, choker are prominent in selfie angles). Colors as seen from the selfie perspective. Hair styling is critical: how it frames the face from this high angle. MUST be consistent across every scene — no outfit changes.',
         notes: 'Kunci komposisi seperti referensi: kamera dari atas, framing dekat, perspektif selfie wide yang natural. HP tidak boleh terlihat di frame (kamera off-frame). Hindari perpindahan angle ekstrem agar look tetap konsisten.',
         emoji: '📸',
         color: '#F9A8D4',
@@ -668,6 +871,13 @@ export const presets = [
             'Demo fitur utama — real usage',
             'Size comparison + final verdict'
         ],
+        movementPrompts: [
+            'Subject holds the gadget at eye level with both hands, slowly rotating it to show front, sides, and back in sequence. Each rotation pauses at key design features: ports, buttons, texture changes, logo placement. Fingers indicate specific details by pointing or tapping. Camera maintains close-up framing on the device with face partially visible above for reaction context.',
+            'Power-on moment: subject\'s thumb presses the power button with deliberate emphasis — a clear visible press. Eyes lock on the screen/indicator light appearing for the first time. Slight lean forward in anticipation. The boot-up glow illuminates the subject\'s face from below. Reaction to first-boot: impressed nod, eyebrows rise at boot speed or display quality.',
+            'Subject actively uses the gadget\'s primary feature — hands working the controls, touching the screen, connecting accessories, or operating the key function. Movements are efficient and knowledgeable, showing genuine familiarity. Face shifts between focused concentration on the task and pleased surprise at the performance. The demonstration clearly shows the value proposition in action.',
+            'Subject holds the gadget next to a common reference object for size comparison — hand, pen, credit card, existing device. Then pulls it back and holds it at mid-chest level for final presentation. Direct camera eye contact, decisive evaluative nod. Holds up rating fingers or gives definitive thumbs up. Places gadget down on desk with a satisfied conclusive tap.'
+        ],
+        wardrobePrompt: 'Clean tech-aesthetic outfit — solid fitted dark t-shirt or henley in black, navy, or charcoal. No graphics or logos competing with the gadget. Clean desk setup or neutral background. Hair neat and unfussy. The overall look communicates "tech reviewer who knows what they are talking about." Minimal distractions from the gadget hero.',
         notes: 'Spec penting tapi jangan terlalu teknis. Fokus ke manfaat praktis. Demo real usage lebih menjual dari spec list. Cocok untuk gadget murah viral.',
         emoji: '📱',
         color: '#6366F1',
@@ -690,6 +900,13 @@ export const presets = [
             'Demo pakai di situasi nyata (dapur, kamar, dll)',
             'Rekomendasi tulus ala ibu-ibu + link'
         ],
+        movementPrompts: [
+            'Subject in a natural home setting — kitchen counter, living room, children\'s play area. Performing a relatable household activity when they encounter a common domestic problem. Hands gesture at the problem area with familiar "ugh, again" frustration. Expression is the universal "every mom knows this" look — slight eye roll, hands-on-hips stance, shaking head.',
+            'Subject reaches for the product naturally — it was already on the counter or in a nearby drawer. Brings it into frame with casual confidence of someone who has used it many times. Holds it up briefly for identification, then immediately begins applying it to the problem. No dramatic reveal — just practical, experienced usage. "I\'ve been using this for months" energy.',
+            'Full real-world demonstration in the actual home context — using the product in the kitchen, bathroom, bedroom, or laundry area where it would naturally be used. Movements are practical and efficient — an experienced user showing how it really works in daily life. May gesture at children or family context to establish the "busy mom" relatability. The setting is authentic, not staged.',
+            'Subject faces camera in the home setting with genuine warm recommendation energy. One hand holds the product at mid-chest, other hand makes a sincere open-palm gesture toward camera. Speaking directly and personally — head nods with conviction, eyebrows raised in earnest "trust me on this one" expression. Points downward at the link area gently. Warm motherly smile — the recommendation feels like advice from a trusted friend.'
+        ],
+        wardrobePrompt: 'Authentic everyday home outfit — comfortable and presentable house duster (daster batik or simple print), or casual home outfit of loose comfortable t-shirt with decent shorts or cotton pants. Hair in practical style: ponytail, bun, or simple headband. Minimal or no makeup — natural face. The visual message is "I am a real mom at home, not an influencer." Authentic and relatable above all.',
         notes: 'Target audience emak-emak = buying power tinggi. Produk rumah tangga, anak, dapur sangat laku. Gaya ngobrol santai. Trust = conversion.',
         emoji: '🏠',
         color: '#F472B6',
@@ -697,6 +914,105 @@ export const presets = [
         transitionStyle: 'Home scene transition, practical demo cut',
         wardrobe: 'Ibu rumah tangga look — daster rapi atau casual home outfit',
         moodKeywords: ['practical', 'motherly', 'trusted', 'home', 'family'],
+    },
+    // ── AI-Optimized Cinematic ── (NEW)
+    {
+        id: 'ai-product-hero',
+        name: 'AI Product Hero Shot',
+        category: 'Cinematic',
+        vibe: 'Sinematik premium, macro hero, luxury detail reveal',
+        bpmRange: '70–90',
+        cameraStyle: '100mm macro push-in + orbital showcase + product spotlight',
+        energyLevel: 'Low-Medium',
+        hookFormula: 'benefit-lead',
+        affiliateAngle: 'Premium product texture reveal with luxury positioning — viewers covet what they cannot fully see',
+        signatureMoves: [
+            'Slow lift — bring product into frame from below with both hands',
+            'Gentle 180° rotation to showcase all angles',
+            'Macro texture reveal — fingertip glides across product surface',
+            'Final hold — product elevated at eye level, cinematic freeze'
+        ],
+        movementPrompts: [
+            'Subject begins off-frame, then both hands slowly lift the product into frame from below, arms extending forward in a presentation gesture. The movement is deliberate and cinematic — akin to a jewelry showcase. Hands are relaxed, wrists slightly arched. The product enters frame bottom-up as if materializing, with velocity of approximately 3cm per second. Camera is on a macro rail performing a synchronized push-in, so as the product rises it simultaneously grows larger in frame. Fabric physics: sleeve edges trail slightly below elbow during the upward lift, wrist fabric stretches gently over the hand.',
+            'With the product held steadily at center-frame both hands perform a slow 180° rotation reveal. Left and right hands counter-rotate gently — left hand palm-up supporting the base, right hand fingertips guiding rotation from the top edge. Total rotation takes 4 seconds, continuous and smooth. The camera orbits the subject slightly leftward in the opposite direction to create a double-rotation visual sensation. Ambient product spotlight catches sequentially on different surface facets as the rotation exposes them.',
+            'Subject uses the pad of the right index fingertip to trace a slow deliberate line across the product surface — demonstrating texture, material quality, or finish. The finger travels at 1cm per second, making contact with exactly the right pressure to show tactility without deforming the material. Close-up 100mm macro at f/2.8 creates a razor-thin depth of field: the fingertip and the immediately surrounding surface area are sharp, everything else melts into creamy bokeh. Product spotlight catches on the fingernail edge creating a micro catch-light.',
+            'Both hands elevate the product to eye level — arm extension at 70% full reach — and hold in a decisive hero presentation. The product faces the camera perfectly level. After 1 second of hold, subject performs a slow single chin-lift that conveys pride and endorsement without facial description. Left hand releases and performs a natural pointing gesture downward toward the imaginary cart icon, arm extending fully. Hold this final position for 2 seconds. Camera slowly pulls back from close to medium distance during this final hold, revealing the full product and subject composition.'
+        ],
+        wardrobePrompt: 'Minimalist premium aesthetic — monochrome fitted turtleneck (black or cream) or structured blazer over simple base. Clean, no logos. Jewelry: single elegant ring on right hand that catches light during product interaction. Sleeves must not obscure hands during product showcase. Fabric: fitted, non-shiny, doesn\'t compete visually with the product.',
+        notes: 'Ideal untuk produk premium: skincare high-end, gadget, fashion item, luxury food. Maximum cinematic mode. Gunakan lighting: product spotlight atau cinematic rim.',
+        emoji: '🎬',
+        color: '#6366F1',
+        beatStructure: '4/4 slow dramatic, each beat = elegant deliberate movement',
+        transitionStyle: 'Slow push-in match cut, orbital to close-up, fade through product surface',
+        wardrobe: 'Minimalis premium — turtleneck atau blazer monokrom',
+        moodKeywords: ['luxury', 'cinematic', 'premium', 'aspirational', 'detailed', 'hero'],
+        grokPromptIdea: 'Ultra-slow cinematic macro hero reveal: both hands lift the product from below into sharp center-frame, 100mm macro lens at f/2.8 creates razor bokeh separation, product spotlight catches on product surface creating luxury sparkle, fingertip traces texture at 1cm/sec revealing tactile quality, orbital camera movement creates double-rotation reveal sensation, closing with single elegant chin-lift endorsement gesture',
+    },
+    // ── Viral Comparison ── (NEW)
+    {
+        id: 'viral-comparison',
+        name: 'Viral Comparison',
+        category: 'Review',
+        vibe: 'Edukasi, side-by-side mengejutkan, pattern interrupt comparison',
+        bpmRange: '100–120',
+        cameraStyle: 'Medium shot + reaction close-up + product split-reveal',
+        energyLevel: 'High',
+        hookFormula: 'curiosity-gap',
+        affiliateAngle: 'Compare expensive alternative vs this product — reveal the shocking value gap to trigger immediate conversion',
+        signatureMoves: [
+            'Two-object reveal — hold both products up simultaneously',
+            'Put one down dramatically — reject the alternative',
+            'Champion the winner product with clear gesture',
+            'Comparison result CTA — decisive point to cart'
+        ],
+        movementPrompts: [
+            'Subject holds two products — one in each hand — both extended forward at shoulder width, elbows at 90°. Both products are at camera height, clearly visible. Subject slowly turns head left-to-right between the two products as if weighing a decision. The body weight shifts subtly left when looking at the left product, right when looking at the right — a physical manifestation of the comparison. This look-comparison sequence repeats twice, building tension. Camera framing: medium wide to capture both products and subject waist-up.',
+            'Subject\'s right arm dramatically drops the inferior product — letting it fall or setting it down with deliberate decisive speed, creating a visual moment of rejection. The motion is quick and final: wrist flexes downward, product exits frame rapidly. Simultaneously the left hand raises the winner product higher — arm extends up to 80% reach, presenting it triumphantly. Eyebrows raise in a "clearly wins" expression. Shoulders squaring to camera asserting confidence in the decision.',
+            'Both hands now focus on the winner product. Left hand holds the base, right hand demonstrates specific superior features — opening, pressing, applying, or pointing to details. Movements are enthusiastic but precise: each feature highlight is a distinct separate gesture lasting 1.5 seconds. Between gestures, the right hand returns to neutral before moving to the next point. Camera cuts between medium shot (showing full demonstration) and close-up of the product interaction.',
+            'Final scene: subject holds the winning product centered at chest height with right hand, left arm extends forward with index finger pointing down toward the imaginary cart icon with urgency. The gesture is held for 2 whole seconds — arm fully extended, finger pointing decisively downward. Slight nod of conviction. The body language says: "stop hesitating, click now." Weight shifts forward toward camera conveying engagement. Camera holds medium frame capturing both the decisive finger point and product clearly.'
+        ],
+        wardrobePrompt: 'High-energy relatable casual — fitted solid-color t-shirt or crop top in a vibrant or saturated color (red, electric blue, lime, fuchsia) that reads as energetic on camera. Clean jeans or casual shorts. Optional: one simple statement accessory (cap, small hoop earring). The outfit competes for attention with TWO products in frame — must be visually distinct from both. No busy prints. Hair styled and presentable.',
+        notes: 'Format "old way vs new way" atau "mahal vs murah". Harga perbandingan harus muncul di caption/overlay. Hook strength: aggressive untuk FOMO maksimal.',
+        emoji: '⚖️',
+        color: '#EF4444',
+        beatStructure: '4/4 energetic, tension-build then release at comparison reveal',
+        transitionStyle: 'Split-screen reveal cut, quick comparison jump cut, dramatic slow-mo at rejection',
+        wardrobe: 'Energetic casual — warna bold, bersih, tidak plain',
+        moodKeywords: ['comparison', 'shocking-value', 'FOMO', 'decisive', 'viral', 'relatable'],
+        grokPromptIdea: 'Side-by-side comparison reveal: subject holds two products simultaneously, performs deliberate head-turn comparison, then dramatically drops the inferior product and triumphantly elevates the winner, enthusiastic feature point demonstration, closing with full-arm decisive cart-point gesture — all in high-energy vivid lighting with energetic body language',
+    },
+    // ── Emotional Storytelling Pro ── (NEW)
+    {
+        id: 'emotional-storytelling-pro',
+        name: 'Emotional Storytelling Pro',
+        category: 'Storytelling',
+        vibe: 'Emosional mendalam, transformasi nyata, relatable journey',
+        bpmRange: '70–95',
+        cameraStyle: 'Close intimate talking-head + timeline cutaway + emotional medium',
+        energyLevel: 'Low-High (builds)',
+        hookFormula: 'pain-amplifier',
+        affiliateAngle: 'Raw authentic struggle → product discovery → genuine transformation. Buyers buy the transformation story, not the product.',
+        signatureMoves: [
+            'Reflective open — hands clasped, genuine emotion recalled',
+            'The problem — physical frustration gesture, show the struggle',
+            'The discovery — gradual relief, product appears naturally',
+            'The transformation — confident present-day testimonial with product'
+        ],
+        movementPrompts: [
+            'Subject sits naturally in a personal space — bedroom edge, sofa, or kitchen chair. Both hands clasped together in lap, slightly forward lean of 15°, head slightly bowed in reflective memory posture. The opening energy is quiet and intimate — not sad, but genuinely vulnerable. As the story begins the head slowly lifts to direct gaze at camera, establishing intimate eye contact. The clasped hands slowly release and rest open on thighs. The energy says: "What I am about to share is real." Camera at close talking-head distance, 85mm at f/1.8, handheld with gentle stabilized micro-movement.',
+            'Subject\'s body language shifts to demonstrate the past problem physicality. Right hand gestures at the relevant body area or problem zone — hair scalp, skin on arm, waist, a stack of bills on the table. The gesture is honest and specific, not performative. Eyebrows knit briefly in recalled frustration. Head shakes once in a "I was so frustrated" motion. The left hand joins the right in a brief open-palm "what could I do" gesture. The movement is natural and conversational — like telling a friend about a real problem. Weight settles back slightly as the subject processes the memory.',
+            'Energy begins its first upward shift. Subject reaches to one side and naturally brings the product into frame — not a dramatic reveal, but an organic "and then I found this" moment. The product arrives in frame with casual confidence, held at mid-chest. One eyebrow lifts in a "once I tried this" expression. The head tilts slightly toward the product with curious remembered optimism. Right hand touches the product surface with a "this was different" stroke. Shoulders relax downward as tension releases from the body. The product is not yet the star — the subject\'s relief energy is the star.',
+            'Present-day confident testimonial. Subject sits upright, chest open, shoulders back — a body language 180° from the opening posture. The product is held with natural comfortable familiarity in right hand at mid-chest. The transformation is communicated entirely through posture — from hunched-reflective to open-confident. Direct warm eye contact with camera. Left hand gestures genuinely as if speaking from experience. After the testimony, both hands lower gently and right arm extends forward with index finger pointing down toward the cart with warmth not urgency. "If I found this helpful, maybe it can help you too" energy.'
+        ],
+        wardrobePrompt: 'Authentic relatable everyday outfit that transitions believably between "past struggle" and "present confidence" — same outfit used throughout (no wardrobe change in video). Choose: clean casual fitted outfit that reads as "normal person" energy — simple blouse or fitted t-shirt, clean trousers or jeans. Natural or simple makeup. No statement jewelry — this is about the person and their story. The outfit should never visually upstage the emotional narrative. Warm, approachable palette: earthy tones, muted pastels, warm neutrals.',
+        notes: 'Paling efektif untuk: produk kesehatan, kecantikan transformatif, diet/fitness, self-care. Autentisitas adalah segalanya. Jangan over-dramatize — natural emotion converts highest.',
+        emoji: '💛',
+        color: '#F59E0B',
+        beatStructure: '4/4 slow open, building to emotional peak, resolving to confident CTA',
+        transitionStyle: 'Intimate close-up to medium, match-action cut at product discovery, slow fade between past and present',
+        wardrobe: 'Casual relatable everyday — clean, simple, warm palette',
+        moodKeywords: ['emotional', 'authentic', 'transformative', 'relatable', 'genuine', 'vulnerable', 'hopeful'],
+        grokPromptIdea: 'Intimate emotional storytelling arc: subject moves from quiet reflective vulnerability (hands clasped, gentle forward lean, direct eye contact establishing) through honest physical demonstration of the past problem, to organic product discovery moment (casual not dramatic), finally arriving at open-posture confident present-day testimonial — the entire arc communicated through body language transitions and emotional authenticity, closing with warm encouragement cart-point gesture',
     },
 ];
 

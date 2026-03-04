@@ -97,6 +97,7 @@ export function postProcessTitles(rawText, options = {}) {
   const maxLength = Math.max(30, Math.min(120, Number.parseInt(options.maxLength, 10) || 60));
   const includeEmoji = Boolean(options.includeEmoji);
   const productName = sanitizeInlineText(options.productName, 'Produk Viral');
+  const isEnglish = options.language === 'EN';
 
   const cleaned = String(rawText || '')
     .replace(/\r\n/g, '\n')
@@ -120,18 +121,31 @@ export function postProcessTitles(rawText, options = {}) {
   }).filter(Boolean);
 
   if (titles.length < titleCount) {
-    const fallbackPool = [
-      `${productName} yang lagi viral, worth it gak sih?`,
-      `Kenapa ${productName} ini laku terus di TikTok Shop`,
-      `${productName} review jujur: hype atau beneran bagus?`,
-      `Cek dulu ${productName} ini sebelum checkout`,
-      `${productName} cocok buat kamu yang butuh hasil cepat`,
-      `${productName}: tips pakai biar hasilnya maksimal`,
-      `${productName} dengan harga segini, masih worth it?`,
-      `Alasan ${productName} ini jadi best seller minggu ini`,
-      `${productName} buat pemula: aman dan gampang dipakai`,
-      `Satu produk, banyak manfaat: ${productName}`,
-    ];
+    const fallbackPool = isEnglish
+      ? [
+        `Is ${productName} actually worth the hype right now?`,
+        `Why ${productName} keeps selling out on TikTok Shop`,
+        `Honest ${productName} review: hype or real results?`,
+        `Watch this before you checkout ${productName}`,
+        `${productName} for beginners: easy, fast, practical`,
+        `${productName} usage tips for better results`,
+        `At this price, is ${productName} still worth buying?`,
+        `Why ${productName} is this week's best seller`,
+        `${productName} in real life: what to expect`,
+        `One product, multiple benefits: ${productName}`,
+      ]
+      : [
+        `${productName} yang lagi viral, worth it gak sih?`,
+        `Kenapa ${productName} ini laku terus di TikTok Shop`,
+        `${productName} review jujur: hype atau beneran bagus?`,
+        `Cek dulu ${productName} ini sebelum checkout`,
+        `${productName} cocok buat kamu yang butuh hasil cepat`,
+        `${productName}: tips pakai biar hasilnya maksimal`,
+        `${productName} dengan harga segini, masih worth it?`,
+        `Alasan ${productName} ini jadi best seller minggu ini`,
+        `${productName} buat pemula: aman dan gampang dipakai`,
+        `Satu produk, banyak manfaat: ${productName}`,
+      ];
 
     for (const candidate of fallbackPool) {
       if (titles.length >= titleCount) break;

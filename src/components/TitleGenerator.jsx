@@ -77,6 +77,7 @@ export default function TitleGenerator() {
     const productName = form.productName.trim();
     if (!productName) {
       showToast(t('titleProductRequired'), 'warning');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -113,7 +114,7 @@ export default function TitleGenerator() {
             id: Date.now(),
             productName,
             titles: nextTitles,
-            timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            timestamp: new Date().toLocaleTimeString(lang === 'ID' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' }),
           },
           ...prev,
         ].slice(0, 12));
@@ -128,7 +129,7 @@ export default function TitleGenerator() {
       if (titleAbortRef.current === controller) titleAbortRef.current = null;
       setIsLoading(false);
     }
-  }, [form, t]);
+  }, [form, lang, t]);
 
   const handleSelectAnalysisImage = useCallback(async (file) => {
     if (!file) return;
@@ -237,7 +238,7 @@ export default function TitleGenerator() {
     if (titles.length === 0) return;
     const text = titles.map((title, index) => `${index + 1}. ${title}`).join('\n');
     const ok = await copyToClipboard(text);
-    showToast(ok ? t('copySuccess') : t('copyFail'), ok ? 'success' : 'error');
+    showToast(ok ? t('titleCopiedAll') : t('copyFail'), ok ? 'success' : 'error');
   }, [titles, t]);
 
   const handleCopyOne = useCallback(async (title) => {
@@ -271,13 +272,13 @@ export default function TitleGenerator() {
           </div>
           {analysisPreview ? (
             <div className="title-analysis__preview-wrap">
-              <img src={analysisPreview} alt="Product analysis preview" className="title-analysis__preview" />
+              <img src={analysisPreview} alt={t('titleAnalysisPreviewAlt')} className="title-analysis__preview" />
               <div className="title-analysis__preview-actions">
                 <button type="button" className="btn btn--outline btn--sm" onClick={() => analysisInputRef.current?.click()}>
                   {t('titleAnalysisChangeImage')}
                 </button>
                 <button type="button" className="btn btn--danger btn--sm" onClick={handleClearAnalysisImage}>
-                  {t('presetActionDelete')}
+                  {t('titleAnalysisRemoveImage')}
                 </button>
               </div>
             </div>
@@ -399,8 +400,8 @@ export default function TitleGenerator() {
               value={form.language}
               onChange={(event) => handleField('language', event.target.value)}
             >
-              <option value="ID">Indonesia</option>
-              <option value="EN">English</option>
+              <option value="ID">{t('languageIndonesian')}</option>
+              <option value="EN">{t('languageEnglish')}</option>
             </select>
           </div>
         </div>
@@ -512,7 +513,7 @@ export default function TitleGenerator() {
                   <p className="title-item__text">{title}</p>
                 </div>
                 <div className="title-item__meta">
-                  <span className="title-item__len">{title.length}</span>
+                  <span className="title-item__len">{title.length} {t('titleCharUnit')}</span>
                   <button type="button" className="btn btn--outline btn--sm" onClick={() => handleCopyOne(title)}>
                     {t('copy')}
                   </button>

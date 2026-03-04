@@ -9,10 +9,13 @@ import CustomPresetModal from './components/CustomPresetModal';
 import Toast from './components/Toast';
 import useToast from './hooks/useToast';
 import { useI18n } from './hooks/useI18n';
+import GrokPiStudio from './components/GrokPiStudio';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 import useGeneration from './hooks/useGeneration';
+import useAnalyzePreset from './hooks/useAnalyzePreset';
+import useCustomPresets from './hooks/useCustomPresets';
 import { showToast } from './lib/toastBus';
-import { USE_MOCK } from './services/gemini';
+import { USE_MOCK, getBackendCapabilities } from './services/gemini';
 import { getItem, setItem, KEYS } from './utils/localStorage';
 import { downloadTxt } from './utils/downloadTxt';
 import { downloadJSON } from './utils/exportFormats';
@@ -78,18 +81,41 @@ function App() {
   // Favorites (persisted)
   const [favorites, setFavorites] = useState(() => getItem(KEYS.FAVORITES, []));
 
-  // Custom presets (persisted)
-  const [customPresets, setCustomPresets] = useState(() => getItem(KEYS.CUSTOM_PRESETS, []));
+  // Custom presets handled by hook
 
   // Modal state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isCustomPresetOpen, setIsCustomPresetOpen] = useState(false);
-  const [customPresetModalKey, setCustomPresetModalKey] = useState(0);
-  const [editingCustomPreset, setEditingCustomPreset] = useState(null);
+  const {
+    customPresets,
+    isCustomPresetOpen, setIsCustomPresetOpen,
+    customPresetModalKey,
+    editingCustomPreset, setEditingCustomPreset,
+    confirmDeletePresetId,
+    handleSaveCustomPreset,
+    handleCreateCustomPreset,
+    handleEditCustomPreset,
+    handleDuplicateCustomPreset,
+    handleDeleteCustomPreset,
+    handleConfirmDeletePreset,
+    handleCancelDeletePreset,
+  } = useCustomPresets({ lang, t, setSelectedPreset });
+
   const [activeMenu, setActiveMenu] = useState('prompt');
 
-  // Merge built-in + custom presets
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeMenu]);
+
+  // AI Analyze Preset state handled by custom hook
+  const [capabilities, setCapabilities] = useState({ geminiEnabled: true });
   const allPresets = useMemo(() => [...builtInPresets, ...customPresets], [customPresets]);
+
+  const { isAnalyzingPreset, handleAnalyzePreset } = useAnalyzePreset({
+    allPresets,
+    capabilities,
+    setSelectedPreset,
+    setAdvancedOptions,
+  });
 
   // Cleanup previews on unmount
   const previewsRef = useRef([]);
@@ -116,15 +142,26 @@ function App() {
     setItem(KEYS.FAVORITES, favorites);
   }, [favorites]);
 
-  // Persist custom presets
-  useEffect(() => {
-    setItem(KEYS.CUSTOM_PRESETS, customPresets);
-  }, [customPresets]);
-
   // Persist advanced options
   useEffect(() => {
     setItem(KEYS.SETTINGS, advancedOptions);
   }, [advancedOptions]);
+
+  useEffect(() => {
+    let mounted = true;
+    getBackendCapabilities()
+      .then((data) => {
+        if (!mounted) return;
+        setCapabilities({ geminiEnabled: Boolean(data?.geminiEnabled) });
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setCapabilities({ geminiEnabled: false });
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Multi-file handlers
   const handleFilesChange = useCallback((newFiles, newPreviews, newReferences) => {
@@ -152,72 +189,6 @@ function App() {
       prevPreviews.forEach(p => { if (p) URL.revokeObjectURL(p); });
       return [];
     });
-  }, []);
-
-  // Custom preset handlers — handles both create and update
-  const handleSaveCustomPreset = useCallback((presetData) => {
-    setCustomPresets(prev => {
-      const existingIdx = prev.findIndex(p => p.id === presetData.id);
-      if (existingIdx >= 0) {
-        const updated = [...prev];
-        updated[existingIdx] = presetData;
-        showToast(t('customPresetUpdated'), 'success');
-        return updated;
-      }
-      showToast(t('customPresetSaved'), 'success');
-      return [...prev, presetData];
-    });
-    setIsCustomPresetOpen(false);
-    setEditingCustomPreset(null);
-  }, [t]);
-
-  const [confirmDeletePresetId, setConfirmDeletePresetId] = useState(null);
-
-  const handleCreateCustomPreset = useCallback(() => {
-    setEditingCustomPreset(null);
-    setCustomPresetModalKey((prev) => prev + 1);
-    setIsCustomPresetOpen(true);
-  }, []);
-
-  const handleEditCustomPreset = useCallback((presetId) => {
-    const preset = customPresets.find((item) => item.id === presetId);
-    if (!preset) return;
-    setEditingCustomPreset(preset);
-    setCustomPresetModalKey((prev) => prev + 1);
-    setIsCustomPresetOpen(true);
-  }, [customPresets]);
-
-  const handleDuplicateCustomPreset = useCallback((presetId) => {
-    const sourcePreset = customPresets.find((item) => item.id === presetId);
-    if (!sourcePreset) return;
-
-    const duplicateSuffix = lang === 'ID' ? '(Salinan)' : '(Copy)';
-    const duplicatedPreset = {
-      ...sourcePreset,
-      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      name: `${sourcePreset.name} ${duplicateSuffix}`,
-      isCustom: true,
-    };
-
-    setCustomPresets((prev) => [duplicatedPreset, ...prev]);
-    setSelectedPreset(duplicatedPreset);
-    showToast(t('customPresetDuplicated'), 'success');
-  }, [customPresets, lang, t]);
-
-  const handleDeleteCustomPreset = useCallback((presetId) => {
-    setConfirmDeletePresetId(presetId);
-  }, []);
-
-  const handleConfirmDeletePreset = useCallback(() => {
-    if (!confirmDeletePresetId) return;
-    setCustomPresets(prev => prev.filter(p => p.id !== confirmDeletePresetId));
-    if (selectedPreset?.id === confirmDeletePresetId) setSelectedPreset(null);
-    showToast(t('customPresetDeleted'), 'success');
-    setConfirmDeletePresetId(null);
-  }, [confirmDeletePresetId, selectedPreset, t]);
-
-  const handleCancelDeletePreset = useCallback(() => {
-    setConfirmDeletePresetId(null);
   }, []);
 
   // Favorites handler
@@ -316,6 +287,7 @@ function App() {
     'ctrl+k': () => setIsSettingsOpen(prev => !prev),
     'ctrl+1': () => setActiveMenu('prompt'),
     'ctrl+2': () => setActiveMenu('title'),
+    'ctrl+3': () => setActiveMenu('grokpi'),
     'escape': () => {
       setIsSettingsOpen(false);
       setIsCustomPresetOpen(false);
@@ -332,6 +304,8 @@ function App() {
 
   return (
     <div className="app">
+      <a href="#app-main-content" className="skip-link">Skip to main content</a>
+
       {/* Header */}
       <header className="app-header">
         <div className="header-content">
@@ -348,6 +322,7 @@ function App() {
                   type="button"
                   className={`header-menu__btn ${activeMenu === 'prompt' ? 'header-menu__btn--active' : ''}`}
                   onClick={() => setActiveMenu('prompt')}
+                  aria-label={t('menuPromptGenerator')}
                 >
                   {t('menuPromptGenerator')}
                 </button>
@@ -355,8 +330,17 @@ function App() {
                   type="button"
                   className={`header-menu__btn ${activeMenu === 'title' ? 'header-menu__btn--active' : ''}`}
                   onClick={() => setActiveMenu('title')}
+                  aria-label={t('menuTitleGenerator')}
                 >
                   {t('menuTitleGenerator')}
+                </button>
+                <button
+                  type="button"
+                  className={`header-menu__btn ${activeMenu === 'grokpi' ? 'header-menu__btn--active' : ''}`}
+                  onClick={() => setActiveMenu('grokpi')}
+                  aria-label={t('menuGrokPiStudio')}
+                >
+                  {t('menuGrokPiStudio')}
                 </button>
               </div>
             </div>
@@ -366,6 +350,7 @@ function App() {
               className="btn btn--icon btn--settings"
               onClick={() => setIsSettingsOpen(true)}
               title="Settings (Ctrl+K)"
+              aria-label="Open settings"
             >
               ⚙️
             </button>
@@ -378,7 +363,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="app-main">
+      <main id="app-main-content" className="app-main">
         {activeMenu === 'prompt' ? (
           <>
             <div className="main-grid">
@@ -390,6 +375,9 @@ function App() {
                   imageReferences={imageReferences}
                   onFilesChange={handleFilesChange}
                   onClear={handleFileClear}
+                  onAnalyzePreset={() => handleAnalyzePreset(files)}
+                  canAnalyzePreset={capabilities.geminiEnabled}
+                  isAnalyzing={isAnalyzingPreset}
                 />
               </div>
 
@@ -436,6 +424,18 @@ function App() {
               />
             </div>
           </>
+        ) : activeMenu === 'title' ? (
+          <div className="title-generator-page">
+            <TitleGenerator />
+          </div>
+        ) : activeMenu === 'grokpi' ? (
+          <div className="title-generator-page">
+            <GrokPiStudio
+              presets={allPresets}
+              initialPreset={selectedPreset}
+              initialPromptOptions={advancedOptions}
+            />
+          </div>
         ) : (
           <div className="title-generator-page">
             <TitleGenerator />
@@ -445,7 +445,7 @@ function App() {
 
       {/* Keyboard Shortcut Hint */}
       <div className="shortcut-hint">
-        <kbd>Ctrl</kbd>+<kbd>1</kbd> Prompt &bull; <kbd>Ctrl</kbd>+<kbd>2</kbd> Title &bull; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> Generate &bull; <kbd>Ctrl</kbd>+<kbd>C</kbd> Copy &bull; <kbd>Ctrl</kbd>+<kbd>S</kbd> TXT &bull; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> JSON &bull; <kbd>Ctrl</kbd>+<kbd>K</kbd> Settings
+        <kbd>Ctrl</kbd>+<kbd>1</kbd> Prompt &bull; <kbd>Ctrl</kbd>+<kbd>2</kbd> Title &bull; <kbd>Ctrl</kbd>+<kbd>3</kbd> GrokPI &bull; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> Generate &bull; <kbd>Ctrl</kbd>+<kbd>C</kbd> Copy &bull; <kbd>Ctrl</kbd>+<kbd>S</kbd> TXT &bull; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> JSON &bull; <kbd>Ctrl</kbd>+<kbd>K</kbd> Settings
       </div>
 
       {/* Footer */}

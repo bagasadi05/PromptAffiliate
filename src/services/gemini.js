@@ -22,6 +22,21 @@ export function hasApiKey() {
   return !!getApiKey();
 }
 
+function getOpencodeAuthToken() {
+  const storedToken = getItem(KEYS.OPENCODE_AUTH_TOKEN, '');
+  if (storedToken) return String(storedToken).trim();
+  return String(import.meta.env.VITE_OPENCODE_AUTH_TOKEN || '').trim();
+}
+
+function buildBackendHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  const authToken = getOpencodeAuthToken();
+  if (authToken) {
+    headers['x-opencode-token'] = authToken;
+  }
+  return headers;
+}
+
 // ==================== DEFAULT SYSTEM PROMPT (for template customization) ====================
 export const DEFAULT_SYSTEM_PROMPT_TEMPLATE = `You are an elite cinematographer, motion director, and AI video prompt engineer specializing in IMAGE-TO-VIDEO generation (Grok Aurora, Kling, Runway Gen-3, Wan2.1). Your goal is to craft prompts that produce 100% PHOTOREALISTIC footage indistinguishable from real iPhone 15 Pro / Arri Alexa / Sony A7S III footage.
 
@@ -119,8 +134,23 @@ function resolveOutputLanguage(value) {
 
 function resolveImageMimeType(imageBase64, imageMimeType) {
   if (imageMimeType) return imageMimeType;
-  const match = imageBase64.match(/^data:(image\/[\w.+-]+);base64,/i);
+  const source = typeof imageBase64 === 'string' ? imageBase64 : '';
+  const match = source.match(/^data:(image\/[\w.+-]+);base64,/i);
   return match?.[1] || 'image/jpeg';
+}
+
+function normalizeImageMimeTypes(imageBase64, imageMimeType) {
+  const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
+
+  if (Array.isArray(imageMimeType)) {
+    return images.map((image, index) => resolveImageMimeType(image, imageMimeType[index]));
+  }
+
+  if (typeof imageMimeType === 'string' && imageMimeType.trim()) {
+    return images.map(() => imageMimeType);
+  }
+
+  return images.map((image) => resolveImageMimeType(image));
 }
 
 function createAbortError() {
@@ -228,7 +258,7 @@ function generateMockPrompt(preset, options) {
 
   // Calculate beats per scene for mock output
   const bpmMatch = preset.bpmRange?.match(/(\d+)/);
-  const avgBPM = bpmMatch ? parseInt(bpmMatch[1]) : 120;
+  const avgBPM = bpmMatch ? Number.parseInt(bpmMatch[1], 10) : 120;
   const beatsPerScene = Math.round((avgBPM / 60) * 6);
 
   const sceneText = scenes.map((scene) => {
@@ -270,21 +300,26 @@ ${customSection}
 
 // ==================== API CLIENT ====================
 
-async function callBackendAPI({ imageBase64, imageMimeType, imageReferences, preset, options, signal }) {
-  // Support multi-image: imageBase64 can be string or array
-  const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
-  const mimeTypes = Array.isArray(imageMimeType) ? imageMimeType : [resolveImageMimeType(imageBase64, imageMimeType)];
+async function callBackendAPI({ files, preset, options, imageReferences, signal }) {
+  const formData = new FormData();
+
+  if (files && files.length > 0) {
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+  }
+
+  if (preset) formData.append('preset', JSON.stringify(preset));
+  if (options) formData.append('options', JSON.stringify(options));
+  if (imageReferences) formData.append('imageReferences', JSON.stringify(imageReferences));
+
+  const headers = buildBackendHeaders();
+  delete headers['Content-Type']; // Let browser set multipart boundary
 
   const response = await fetchWithRetry('/api/generate', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      preset,
-      options,
-      imageBase64: images,
-      imageMimeType: mimeTypes,
-      imageReferences,
-    }),
+    headers,
+    body: formData,
     signal,
   });
 
@@ -303,10 +338,10 @@ async function callBackendAPI({ imageBase64, imageMimeType, imageReferences, pre
 async function callTitleBackendAPI({ payload, signal }) {
   const response = await fetchWithRetry('/api/generate-title', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: buildBackendHeaders(),
     body: JSON.stringify(payload),
     signal,
-  });
+  }, { maxRetries: 3, baseDelay: 1500 });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -325,7 +360,7 @@ async function callTitleBackendAPI({ payload, signal }) {
 async function callProductAnalysisAPI({ payload, signal }) {
   const response = await fetchWithRetry('/api/analyze-product', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: buildBackendHeaders(),
     body: JSON.stringify(payload),
     signal,
   });
@@ -339,6 +374,37 @@ async function callProductAnalysisAPI({ payload, signal }) {
   return data?.analysis || null;
 }
 
+async function callGrokVideoStartAPI({ payload, signal }) {
+  const response = await fetchWithRetry('/api/grok-video/start', {
+    method: 'POST',
+    headers: buildBackendHeaders(),
+    body: JSON.stringify(payload),
+    signal,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error?.message || errorData?.error || `Request failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function callGrokVideoStatusAPI({ requestId, signal }) {
+  const response = await fetchWithRetry(`/api/grok-video/status/${encodeURIComponent(requestId)}`, {
+    method: 'GET',
+    headers: buildBackendHeaders(),
+    signal,
+  }, { maxRetries: 0 });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error?.message || errorData?.error || `Request failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
 // ==================== RETRY LOGIC ====================
 async function fetchWithRetry(url, fetchOptions, { maxRetries = 1, baseDelay = 1000 } = {}) {
   let lastError;
@@ -349,7 +415,7 @@ async function fetchWithRetry(url, fetchOptions, { maxRetries = 1, baseDelay = 1
 
       if (response.status === 429) {
         const retryAfter = response.headers.get('Retry-After');
-        const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : baseDelay * Math.pow(2, attempt);
+        const waitMs = retryAfter ? Number.parseInt(retryAfter, 10) * 1000 : baseDelay * Math.pow(2, attempt);
         if (attempt < maxRetries) {
           await new Promise(r => setTimeout(r, waitMs));
           continue;
@@ -380,14 +446,13 @@ async function fetchWithRetry(url, fetchOptions, { maxRetries = 1, baseDelay = 1
  * Generate a detailed TikTok affiliate video prompt.
  *
  * @param {Object} params
- * @param {string|string[]} params.imageBase64 - Base64 encoded image(s)
- * @param {string|string[]} [params.imageMimeType] - Image MIME type(s)
+ * @param {File[]} params.files - Image files
  * @param {Object} params.preset - Selected affiliate preset
  * @param {Object} params.userOptions - Advanced options
  * @param {AbortSignal} [params.signal] - Optional abort signal
  * @returns {Promise<{ text: string, quality: object | null }>} Generated prompt payload
  */
-export async function generatePrompt({ imageBase64, imageMimeType, imageReferences, preset, userOptions, signal }) {
+export async function generatePrompt({ files, imageReferences, preset, userOptions, signal }) {
   const options = {
     ...DEFAULT_OPTIONS,
     ...userOptions,
@@ -403,13 +468,174 @@ export async function generatePrompt({ imageBase64, imageMimeType, imageReferenc
   }
 
   return callBackendAPI({
-    imageBase64,
-    imageMimeType,
+    files,
     imageReferences,
     preset,
     options,
     signal,
   });
+}
+
+/**
+ * Generate a video prompt optimized for Grok Imagine.
+ * 
+ * @param {Object} params
+ * @param {string|string[]} params.imageBase64 - Base64 encoded image(s)
+ * @param {string|string[]} [params.imageMimeType] - Image MIME type(s)
+ * @param {Object} params.preset - Selected affiliate preset
+ * @param {Object} params.userOptions - Advanced options
+ * @param {AbortSignal} [params.signal] - Optional abort signal
+ * @returns {Promise<{ text: string }>} Generated prompt payload
+ */
+export async function generateGrokVideoPrompt({ imageBase64, imageMimeType, imageReferences, preset, userOptions, signal }) {
+  const options = {
+    ...DEFAULT_OPTIONS,
+    ...userOptions,
+  };
+
+  if (USE_MOCK) {
+    await delayWithAbort(1500 + Math.random() * 2000, signal);
+    return {
+      text: "MOCK GROK PROMPT:\nCamera sweeps smoothly around the subject showing the product clearly. Ultra-realistic 4K.",
+    };
+  }
+
+  const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
+  const mimeTypes = normalizeImageMimeTypes(images, imageMimeType);
+
+  const response = await fetchWithRetry('/api/generate-grok-video-prompt', {
+    method: 'POST',
+    headers: buildBackendHeaders(),
+    body: JSON.stringify({
+      preset,
+      options,
+      imageBase64: images,
+      imageMimeType: mimeTypes,
+      imageReferences,
+    }),
+    signal,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error?.message || errorData?.error || `Request failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  return {
+    text: data?.text || 'No content generated.',
+  };
+}
+
+/**
+ * Generate a Grok Imagine video via xAI API (async start + polling).
+ *
+ * @param {Object} params
+ * @param {string} params.prompt
+ * @param {string} [params.imageBase64]
+ * @param {string} [params.imageMimeType]
+ * @param {number} [params.duration]
+ * @param {string} [params.aspectRatio]
+ * @param {'480p'|'720p'} [params.resolution]
+ * @param {AbortSignal} [params.signal]
+ * @param {(state: { stage: string, status?: string, requestId?: string }) => void} [params.onStatus]
+ * @returns {Promise<{ requestId: string, status: string, xaiStatus?: string, video: object | null }>}
+ */
+export async function generateGrokImagineVideo({
+  prompt,
+  imageBase64,
+  imageMimeType,
+  duration,
+  aspectRatio,
+  resolution = '720p',
+  signal,
+  onStatus,
+}) {
+  const allowedAspectRatios = new Set(['9:16', '16:9', '1:1', '4:3', '3:4', '3:2', '2:3']);
+  const trimmedPrompt = String(prompt || '').trim();
+  if (!trimmedPrompt) {
+    throw new Error('Prompt is required.');
+  }
+
+  if (!imageBase64) {
+    throw new Error('Reference image is required.');
+  }
+
+  const referenceLockedPrompt = [
+    'STRICT REFERENCE LOCK: Preserve the same person identity, face, hairstyle, outfit, body proportions, and overall look from the reference image. Do not alter identity, ethnicity, age, or facial structure.',
+    'Keep visual continuity with the reference image while only animating motion/camera/lighting as requested.',
+    trimmedPrompt,
+  ].join('\n\n');
+
+  const normalizedAspectRatio = allowedAspectRatios.has(String(aspectRatio || '').trim())
+    ? String(aspectRatio).trim()
+    : undefined;
+
+  onStatus?.({ stage: 'starting' });
+
+  const startResult = await callGrokVideoStartAPI({
+    payload: {
+      prompt: referenceLockedPrompt,
+      imageBase64,
+      imageMimeType: imageMimeType || undefined,
+      duration: Number.isInteger(Number(duration)) ? Number(duration) : undefined,
+      aspectRatio: normalizedAspectRatio,
+      resolution: resolution || undefined,
+    },
+    signal,
+  });
+
+  const requestId = startResult?.requestId;
+  if (!requestId) {
+    throw new Error('xAI did not return a video request ID.');
+  }
+
+  let lastStatus = startResult?.status || 'processing';
+  onStatus?.({ stage: 'polling', status: lastStatus, requestId });
+
+  if (lastStatus === 'completed') {
+    return {
+      requestId,
+      status: startResult.status,
+      xaiStatus: startResult.xaiStatus,
+      video: startResult.video || null,
+    };
+  }
+
+  if (lastStatus === 'failed' || lastStatus === 'cancelled') {
+    const message = startResult?.error?.message || `Video generation ${lastStatus}.`;
+    throw new Error(message);
+  }
+
+  const startedAt = Date.now();
+  const timeoutMs = 6 * 60 * 1000;
+  const pollIntervalMs = 4000;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    await delayWithAbort(pollIntervalMs, signal);
+
+    const statusResult = await callGrokVideoStatusAPI({ requestId, signal });
+    lastStatus = statusResult?.status || 'processing';
+    onStatus?.({ stage: 'polling', status: lastStatus, requestId });
+
+    if (lastStatus === 'completed') {
+      return {
+        requestId,
+        status: statusResult.status,
+        xaiStatus: statusResult.xaiStatus,
+        video: statusResult.video || null,
+      };
+    }
+
+    if (lastStatus === 'failed' || lastStatus === 'cancelled') {
+      const message = statusResult?.error?.message || `Video generation ${lastStatus}.`;
+      throw new Error(message);
+    }
+  }
+
+  const timeoutError = new Error('Video generation is still processing. Please try again in a moment.');
+  timeoutError.requestId = requestId;
+  throw timeoutError;
 }
 
 /**
@@ -501,6 +727,127 @@ export async function analyzeProductByImage({
   };
 
   return callProductAnalysisAPI({ payload, signal });
+}
+
+async function callGrokPi(path, { method = 'GET', body, signal } = {}) {
+  const response = await fetchWithRetry(path, {
+    method,
+    headers: buildBackendHeaders(),
+    body: body ? JSON.stringify(body) : undefined,
+    signal,
+  }, { maxRetries: 0 });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const detail = errorData?.detail;
+    const detailMessage = typeof detail === 'string'
+      ? detail
+      : (detail?.error || detail?.message || errorData?.error || errorData?.message || 'GrokPI request failed');
+    throw new Error(detailMessage);
+  }
+
+  return response.json();
+}
+
+function normalizeGrokPiFilename(input) {
+  let value = String(input || '').trim();
+  if (!value) return '';
+
+  try {
+    value = decodeURIComponent(value);
+  } catch {
+    // Keep original value when decoding fails.
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    try {
+      value = new URL(value).pathname;
+    } catch {
+      // Keep original value when URL parsing fails.
+    }
+  }
+
+  const normalized = value.replace(/\\/g, '/').split('/').filter(Boolean).pop();
+  return String(normalized || '').trim();
+}
+
+export async function generateGrokPiImage({
+  prompt,
+  aspectRatio = '9:16',
+  n = 1,
+  responseFormat = 'url',
+  signal,
+}) {
+  const text = String(prompt || '').trim();
+  if (!text) throw new Error('Image prompt is required.');
+
+  return callGrokPi('/api/grokpi/image', {
+    method: 'POST',
+    body: {
+      prompt: text,
+      n: Math.min(4, Math.max(1, Number.parseInt(n, 10) || 1)),
+      aspect_ratio: aspectRatio,
+      response_format: responseFormat,
+      stream: false,
+    },
+    signal,
+  });
+}
+
+export async function generateGrokPiVideo({
+  prompt,
+  aspectRatio,
+  durationSeconds = 6,
+  resolution = '480p',
+  preset = 'normal',
+  responseFormat = 'url',
+  imageUrl,
+  strictReference = true,
+  signal,
+}) {
+  const text = String(prompt || '').trim();
+  if (!text) throw new Error('Video prompt is required.');
+
+  return callGrokPi('/api/grokpi/video', {
+    method: 'POST',
+    body: {
+      prompt: text,
+      aspect_ratio: aspectRatio,
+      duration_seconds: durationSeconds,
+      resolution,
+      preset,
+      response_format: responseFormat,
+      image_url: imageUrl || undefined,
+      strict_reference: Boolean(strictReference),
+    },
+    signal,
+  });
+}
+
+export async function listGrokPiImages({ limit = 24, signal } = {}) {
+  return callGrokPi(`/api/grokpi/gallery/images?limit=${encodeURIComponent(String(limit))}`, { method: 'GET', signal });
+}
+
+export async function listGrokPiVideos({ limit = 24, signal } = {}) {
+  return callGrokPi(`/api/grokpi/gallery/videos?limit=${encodeURIComponent(String(limit))}`, { method: 'GET', signal });
+}
+
+export async function deleteGrokPiImage(filename, { signal } = {}) {
+  const safeName = normalizeGrokPiFilename(filename);
+  if (!safeName) throw new Error('Image filename is required.');
+  return callGrokPi(`/api/grokpi/media/image/${encodeURIComponent(safeName)}`, { method: 'DELETE', signal });
+}
+
+export async function deleteGrokPiVideo(filename, { signal } = {}) {
+  const safeName = normalizeGrokPiFilename(filename);
+  if (!safeName) throw new Error('Video filename is required.');
+  return callGrokPi(`/api/grokpi/media/video/${encodeURIComponent(safeName)}`, { method: 'DELETE', signal });
+}
+
+export async function getBackendCapabilities({ signal } = {}) {
+  const response = await fetchWithRetry('/api/capabilities', { method: 'GET', signal });
+  if (!response.ok) return { geminiEnabled: false, grokPiEnabled: false };
+  return response.json();
 }
 
 export default generatePrompt;
