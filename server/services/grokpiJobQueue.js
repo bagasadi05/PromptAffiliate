@@ -5,7 +5,18 @@
 import crypto from 'crypto';
 import { Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
-import { generateGrokVideoPrompt, generateTitles, generateGrokPiVideo } from './geminiService.js';
+import { callPromptModel } from './orchestratorService.js';
+import {
+    buildGrokSystemPrompt,
+    buildGrokUserPrompt,
+    postProcessGrokOutput,
+} from './grokPromptService.js';
+import {
+    buildTitleSystemPrompt,
+    buildTitleUserPrompt,
+    postProcessTitles,
+} from './titleService.js';
+import { grokPiGenerateVideo } from './grokpiService.js';
 
 const REDIS_URL = process.env.REDIS_URL;
 
@@ -41,6 +52,117 @@ if (REDIS_URL) {
 
 function createError(code, message, retryable = false) {
     return { code, message, retryable };
+}
+
+function normalizeImageBase64(imageStr) {
+    if (!imageStr) return '';
+    if (Buffer.isBuffer(imageStr)) return imageStr.toString('base64');
+    return String(imageStr).replace(/^data:image\/[\w.+-]+;base64,/i, '').trim();
+}
+
+async function generateGrokVideoPrompt({
+    imageStr,
+    mimeType = 'image/jpeg',
+    preset = {},
+    userOptions = {},
+}) {
+    const imageBase64 = normalizeImageBase64(imageStr);
+    const images = imageBase64 ? [imageBase64] : [];
+    const mimeTypes = imageBase64 ? [mimeType] : [];
+
+    const systemPrompt = buildGrokSystemPrompt(userOptions);
+    const userPrompt = buildGrokUserPrompt(preset, userOptions);
+
+    const rawText = await callPromptModel(systemPrompt, userPrompt, images, mimeTypes, {
+        ...userOptions,
+        fallbackOnGeminiLimit: true,
+    });
+
+    return { text: postProcessGrokOutput(rawText) };
+}
+
+async function generateTitles(input = {}) {
+    const systemPrompt = buildTitleSystemPrompt(input);
+    const userPrompt = buildTitleUserPrompt(input);
+
+    const rawText = await callPromptModel(systemPrompt, userPrompt, [], [], {
+        ...input,
+        fallbackOnGeminiLimit: true,
+    });
+
+    const titles = postProcessTitles(rawText, input);
+    return { text: titles.join('\n'), titles };
+}
+
+function buildReferenceImageDataUrl(imageBuffer, mimeType = 'image/jpeg') {
+    if (!Buffer.isBuffer(imageBuffer) || imageBuffer.length === 0) return '';
+    return `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
+}
+
+async function generateGrokPiVideo({
+    prompt,
+    durationSeconds,
+    aspectRatio,
+    resolution,
+    preset = 'normal',
+    imageBuffer,
+    mimeType = 'image/jpeg',
+    strictReference = true,
+}) {
+    const imageUrl = buildReferenceImageDataUrl(imageBuffer, mimeType);
+    const hasReferenceImage = Boolean(imageUrl);
+
+    const safePrompt = hasReferenceImage
+        ? [
+            'STRICT REFERENCE LOCK: Preserve the exact visible details from reference image.',
+            'Do not invent unseen body regions. If face/head is not visible in the reference, keep face/head out of frame.',
+            'Keep framing aligned to reference crop unless explicitly requested otherwise.',
+            prompt,
+        ].join('\n\n')
+        : prompt;
+
+    const payload = {
+        prompt: safePrompt,
+        preset,
+        strict_reference: strictReference,
+    };
+
+    if (Number.isFinite(Number(durationSeconds))) payload.duration_seconds = Number(durationSeconds);
+    if (aspectRatio) payload.aspect_ratio = aspectRatio;
+    if (resolution) payload.resolution = resolution;
+    if (hasReferenceImage) payload.image_url = imageUrl;
+
+    try {
+        const result = await grokPiGenerateVideo(payload);
+        return {
+            ...result,
+            referenceMode: hasReferenceImage ? 'attached' : 'none',
+        };
+    } catch (error) {
+        const shouldRetryWithoutImage = hasReferenceImage
+            && error?.statusCode === 502
+            && String(error?.message || '').includes('app_chat failed (400)');
+
+        if (!shouldRetryWithoutImage) {
+            throw error;
+        }
+
+        if (strictReference) {
+            throw createError(
+                'GROKPI_STRICT_REF_REJECTED',
+                'Reference image was rejected by Grok upstream. Strict reference mode prevents prompt-only fallback.',
+                false,
+            );
+        }
+
+        const { image_url: _ignoredImage, ...fallbackPayload } = payload;
+        const fallbackResult = await grokPiGenerateVideo(fallbackPayload);
+        return {
+            ...fallbackResult,
+            warning: 'Reference image attachment was rejected by Grok upstream. Video generated with prompt-only fallback.',
+            referenceMode: 'prompt-only-fallback',
+        };
+    }
 }
 
 // Unified Store Methods
@@ -293,6 +415,7 @@ async function processJob(jobId, bullJob = null) {
                             resolution: config.resolution,
                             preset: 'normal',
                             imageBuffer: configBuffer,
+                            mimeType: config.mimeType,
                             strictReference: !config.allowPromptOnlyFallback,
                             signal
                         });
