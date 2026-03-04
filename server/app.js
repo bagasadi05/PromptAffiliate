@@ -1,69 +1,12 @@
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import multipart from '@fastify/multipart';
-import rateLimit from '@fastify/rate-limit';
-import Redis from 'ioredis';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 
-import { PORT, REDIS_URL, allowedOrigins, getGeminiApiKey } from './config/env.js';
-import routes from './routes/index.js';
+import { PORT, getGeminiApiKey } from './config/env.js';
+import { buildApp } from './createApp.js';
 
-const fastify = Fastify({
-  logger: true,
-  bodyLimit: 20 * 1024 * 1024, // 20MB limit for multipart forms
-});
-
-// Setup Rate Limiting
-const rateLimitConfig = {
-  global: false,
-  max: 100,
-  timeWindow: '1 minute',
-  errorResponseBuilder: (request, context) => ({
-    code: 429,
-    error: 'Too Many Requests',
-    message: `Rate limit exceeded. Please slow down requests to protect provider account health.`,
-    expiresIn: context.ttl
-  })
-};
-
-// Apply redis adapter if REDIS_URL is provided in environment
-if (REDIS_URL) {
-  const redis = new Redis(REDIS_URL);
-  rateLimitConfig.redis = redis;
-}
-
-await fastify.register(rateLimit, rateLimitConfig);
-
-// Register Multipart Plugin
-await fastify.register(multipart, {
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB per file max
-    files: 4 // Max 4 files
-  }
-});
-
-// Register CORS
-await fastify.register(cors, {
-  origin(origin, callback) {
-    if (!origin) {
-      // Same-origin or non-browser requests (curl, server-to-server) — allow.
-      callback(null, true);
-      return;
-    }
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS: origin '${origin}' not allowed`), false);
-    }
-  },
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-});
-
-// Register modular routes
-await fastify.register(routes);
+const fastify = await buildApp({ logger: true });
 
 // Define __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
