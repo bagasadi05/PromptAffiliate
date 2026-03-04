@@ -49,10 +49,15 @@ await fastify.register(multipart, {
 await fastify.register(cors, {
   origin(origin, callback) {
     if (!origin) {
+      // Same-origin or non-browser requests (curl, server-to-server) — allow.
       callback(null, true);
       return;
     }
-    callback(null, allowedOrigins.includes(origin));
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin '${origin}' not allowed`), false);
+    }
   },
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
 });

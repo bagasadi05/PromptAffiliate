@@ -29,7 +29,11 @@ export function getGeminiApiKey() {
     return process.env.GEMINI_API_KEY?.trim() || '';
 }
 
-const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const DEFAULT_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://prompt-affiliate.vercel.app',
+];
 export function parseAllowedOrigins(value) {
     if (!value || typeof value !== 'string') return DEFAULT_ALLOWED_ORIGINS;
     const parsed = value
