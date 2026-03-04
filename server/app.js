@@ -123,4 +123,9 @@ const start = async () => {
   }
 };
 
-start();
+// Only start the HTTP server when running directly (not as a Vercel serverless function)
+if (!process.env.VERCEL) {
+  start();
+}
+
+export default fastify;
