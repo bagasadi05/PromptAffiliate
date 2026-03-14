@@ -4,6 +4,11 @@
  */
 export const DEFAULT_OPTIONS = {
     productName: '',
+    targetAudience: '',
+    keySellingPoints: '',
+    mustInclude: '',
+    avoidElements: '',
+    sceneMustIncludeMap: '',
     outputLanguage: 'EN',
     subjectDescription: '',
     creativity: 85,

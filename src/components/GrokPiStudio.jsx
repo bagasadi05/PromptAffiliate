@@ -12,7 +12,6 @@ export default function GrokPiStudio({ presets = [], initialPreset = null, initi
   const { t } = useI18n();
   const [geminiEnabled, setGeminiEnabled] = useState(true);
   const [grokPiEnabled, setGrokPiEnabled] = useState(true);
-  const [capabilitiesLoaded, setCapabilitiesLoaded] = useState(false);
 
   // Initialize modular hooks
   const grokPiForm = useGrokPiForm(presets, initialPreset, initialPromptOptions);
@@ -38,13 +37,11 @@ export default function GrokPiStudio({ presets = [], initialPreset = null, initi
         if (!mounted) return;
         setGeminiEnabled(Boolean(cap?.geminiEnabled));
         setGrokPiEnabled(Boolean(cap?.grokPiEnabled));
-        setCapabilitiesLoaded(true);
       })
       .catch(() => {
         if (!mounted) return;
         setGeminiEnabled(false);
         setGrokPiEnabled(false);
-        setCapabilitiesLoaded(true);
       });
     return () => {
       mounted = false;

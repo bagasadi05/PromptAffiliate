@@ -1,4 +1,5 @@
 // Vercel Serverless Function entry point — wraps the Fastify app via inject()
+import { Buffer } from 'node:buffer';
 import { buildApp } from '../server/createApp.js';
 
 let app;

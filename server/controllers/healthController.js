@@ -3,11 +3,11 @@ import { getGeminiApiKey } from '../config/env.js';
 import { z } from 'zod';
 import { Readable } from 'node:stream';
 
-export async function handleHealth(request, reply) {
+export async function handleHealth() {
     return { ok: true };
 }
 
-export async function handleCapabilities(request, reply) {
+export async function handleCapabilities() {
     let grokPiEnabled = false;
     try {
         await grokPiHealth();
@@ -60,8 +60,8 @@ const grokPiListSchema = z.object({
 
 export async function handleGrokPiGalleryImages(request, reply) {
     try {
-        const { limit = 24 } = grokPiListSchema.parse(request.query || {});
-        return await grokPiListImages(limit);
+        const { limit = 24, cursor } = grokPiListSchema.parse(request.query || {});
+        return await grokPiListImages(limit, cursor);
     } catch (error) {
         if (error instanceof z.ZodError) {
             reply.code(400).send({ error: 'Validation Error', details: error.errors });

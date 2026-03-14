@@ -2,6 +2,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { showToast } from '../../lib/toastBus';
 import { generateGrokPiImage, generateGrokPiVideo } from '../../services/gemini';
 import { useState, useRef } from 'react';
+import { fileToBase64 } from '../../utils/fileToBase64';
 
 const STEP_ORDER = ['prompt', 'grokPrompt', 'video', 'analysis', 'titles'];
 
@@ -51,6 +52,10 @@ export default function GrokPiJobStatus({
         }
         setIsGrokPiVideoLoading(true);
         try {
+            const referenceImageDataUrl = referenceImageBlob
+                ? await fileToBase64(referenceImageBlob)
+                : undefined;
+
             // In the new architecture, this could also be sent to the backend job queue or 
             // directly to the gemini service if it's a one-off. For now, we maintain direct call
             // or we can just show warning if direct call is deprecated.
@@ -60,7 +65,7 @@ export default function GrokPiJobStatus({
                 durationSeconds: form.targetDuration,
                 resolution: form.resolution === '720p' ? '720p' : '480p',
                 preset: 'normal',
-                imageUrl: referenceImageBlob ? URL.createObjectURL(referenceImageBlob) : undefined, // temporary fix for one off
+                imageUrl: referenceImageDataUrl,
                 strictReference: !form.allowPromptOnlyFallback,
             });
 

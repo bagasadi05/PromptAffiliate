@@ -2,6 +2,7 @@ export async function parseMultipartData(request) {
     const parts = request.parts();
     const files = [];
     const fields = {};
+    const jsonFieldNames = new Set(['preset', 'options', 'imageReferences', 'preferenceMemory']);
 
     for await (const part of parts) {
         if (part.type === 'file') {
@@ -18,12 +19,12 @@ export async function parseMultipartData(request) {
         } else {
             // parse known JSON fields automatically, or keep string
             try {
-                if (['preset', 'options', 'imageReferences'].includes(part.fieldname)) {
+                if (jsonFieldNames.has(part.fieldname)) {
                     fields[part.fieldname] = JSON.parse(part.value);
                 } else {
                     fields[part.fieldname] = part.value;
                 }
-            } catch (e) {
+            } catch {
                 fields[part.fieldname] = part.value;
             }
         }

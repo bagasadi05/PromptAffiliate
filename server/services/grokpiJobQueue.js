@@ -261,7 +261,7 @@ class GrokPiJobManager {
         const state = await getJobState(jobId);
         if (!state) return null;
         if (state.config && state.config.imageBase64) {
-            const { imageBase64, ...safeConfig } = state.config;
+            const { imageBase64: _imageBase64, ...safeConfig } = state.config;
             return { ...state, config: safeConfig };
         }
         return state;
@@ -491,7 +491,7 @@ async function processJob(jobId, bullJob = null) {
                 await saveJobState(jobId, finalJob);
 
                 job = await updateStep(jobId, 'titles', { status: 'success', message: `${titles.length} titles generated.` });
-            } catch (e) {
+            } catch {
                 job = await updateStep(jobId, 'titles', { status: 'error', message: 'TITLE_GEN_FAILED' });
             }
         }

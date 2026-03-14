@@ -44,4 +44,5 @@ export const KEYS = {
     CUSTOM_PRESETS: 'custom_presets',
     SYSTEM_PROMPT_TEMPLATE: 'system_prompt_template',
     SETTINGS: 'settings',
+    PROMPT_PREFERENCE_MEMORY: 'prompt_preference_memory',
 };

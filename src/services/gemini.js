@@ -8,6 +8,7 @@
 
 import { getItem, KEYS } from '../utils/localStorage';
 import { DEFAULT_OPTIONS } from '../constants/defaultOptions';
+import { getBackendAuthHeaders } from '../utils/backendAuth';
 
 export const USE_MOCK = false;
 
@@ -22,19 +23,11 @@ export function hasApiKey() {
   return !!getApiKey();
 }
 
-function getOpencodeAuthToken() {
-  const storedToken = getItem(KEYS.OPENCODE_AUTH_TOKEN, '');
-  if (storedToken) return String(storedToken).trim();
-  return String(import.meta.env.VITE_OPENCODE_AUTH_TOKEN || '').trim();
-}
-
 function buildBackendHeaders() {
-  const headers = { 'Content-Type': 'application/json' };
-  const authToken = getOpencodeAuthToken();
-  if (authToken) {
-    headers['x-opencode-token'] = authToken;
-  }
-  return headers;
+  return {
+    ...getBackendAuthHeaders(),
+    'Content-Type': 'application/json',
+  };
 }
 
 // ==================== DEFAULT SYSTEM PROMPT (for template customization) ====================
@@ -151,6 +144,32 @@ function normalizeImageMimeTypes(imageBase64, imageMimeType) {
   }
 
   return images.map((image) => resolveImageMimeType(image));
+}
+
+function extensionFromMimeType(mimeType) {
+  const match = String(mimeType || '').match(/^image\/([\w.+-]+)/i);
+  if (!match?.[1]) return 'jpg';
+  const ext = match[1].toLowerCase();
+  return ext === 'jpeg' ? 'jpg' : ext;
+}
+
+function decodeBase64ToBlob(imageBase64, fallbackMimeType = 'image/jpeg') {
+  const source = String(imageBase64 || '').trim();
+  if (!source) {
+    throw new Error('Image data is empty.');
+  }
+
+  const dataUrlMatch = source.match(/^data:([^;]+);base64,(.+)$/i);
+  const mimeType = dataUrlMatch?.[1] || fallbackMimeType;
+  const base64Data = dataUrlMatch?.[2] || source;
+
+  const binary = atob(base64Data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return new Blob([bytes], { type: mimeType });
 }
 
 function createAbortError() {
@@ -357,11 +376,12 @@ async function callTitleBackendAPI({ payload, signal }) {
   };
 }
 
-async function callProductAnalysisAPI({ payload, signal }) {
+async function callProductAnalysisAPI({ formData, signal }) {
+  const headers = getBackendAuthHeaders();
   const response = await fetchWithRetry('/api/analyze-product', {
     method: 'POST',
-    headers: buildBackendHeaders(),
-    body: JSON.stringify(payload),
+    headers,
+    body: formData,
     signal,
   });
 
@@ -372,6 +392,24 @@ async function callProductAnalysisAPI({ payload, signal }) {
 
   const data = await response.json();
   return data?.analysis || null;
+}
+
+async function callOptionsAutofillAPI({ formData, signal }) {
+  const headers = getBackendAuthHeaders();
+  const response = await fetchWithRetry('/api/autofill-options', {
+    method: 'POST',
+    headers,
+    body: formData,
+    signal,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error?.message || errorData?.error || `Request failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data?.suggestions || null;
 }
 
 async function callGrokVideoStartAPI({ payload, signal }) {
@@ -503,16 +541,21 @@ export async function generateGrokVideoPrompt({ imageBase64, imageMimeType, imag
   const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
   const mimeTypes = normalizeImageMimeTypes(images, imageMimeType);
 
+  const formData = new FormData();
+  images.forEach((image, index) => {
+    const mimeType = mimeTypes[index] || 'image/jpeg';
+    const blob = decodeBase64ToBlob(image, mimeType);
+    const ext = extensionFromMimeType(mimeType);
+    formData.append('files', blob, `reference-${index + 1}.${ext}`);
+  });
+  if (preset) formData.append('preset', JSON.stringify(preset));
+  if (options) formData.append('options', JSON.stringify(options));
+  if (imageReferences) formData.append('imageReferences', JSON.stringify(imageReferences));
+
   const response = await fetchWithRetry('/api/generate-grok-video-prompt', {
     method: 'POST',
-    headers: buildBackendHeaders(),
-    body: JSON.stringify({
-      preset,
-      options,
-      imageBase64: images,
-      imageMimeType: mimeTypes,
-      imageReferences,
-    }),
+    headers: getBackendAuthHeaders(),
+    body: formData,
     signal,
   });
 
@@ -718,15 +761,41 @@ export async function analyzeProductByImage({
     throw new Error('Image is required for analysis.');
   }
 
-  const payload = {
-    imageBase64,
-    imageMimeType: imageMimeType || undefined,
-    language: language === 'EN' ? 'EN' : 'ID',
-    customContext: String(customContext || '').trim(),
-    creativity: Number.isFinite(Number(creativity)) ? Number(creativity) : 70,
-  };
+  const mimeType = imageMimeType || resolveImageMimeType(imageBase64, imageMimeType);
+  const imageBlob = decodeBase64ToBlob(imageBase64, mimeType);
+  const formData = new FormData();
+  formData.append('files', imageBlob, `analysis.${extensionFromMimeType(mimeType)}`);
+  formData.append('language', language === 'EN' ? 'EN' : 'ID');
+  formData.append('customContext', String(customContext || '').trim());
+  formData.append('creativity', String(Number.isFinite(Number(creativity)) ? Number(creativity) : 70));
 
-  return callProductAnalysisAPI({ payload, signal });
+  return callProductAnalysisAPI({ formData, signal });
+}
+
+export async function autofillEmptyPromptOptions({
+  files,
+  preset,
+  currentOptions,
+  preferenceMemory,
+  language = 'ID',
+  mode = 'all-safe',
+  signal,
+}) {
+  if (!Array.isArray(files) || files.length === 0) {
+    throw new Error('Reference image is required for autofill.');
+  }
+
+  const formData = new FormData();
+  files.slice(0, 3).forEach((file) => {
+    formData.append('files', file);
+  });
+  formData.append('language', language === 'EN' ? 'EN' : 'ID');
+  formData.append('preset', JSON.stringify(preset || {}));
+  formData.append('options', JSON.stringify(currentOptions || {}));
+  formData.append('preferenceMemory', JSON.stringify(preferenceMemory || {}));
+  formData.append('mode', String(mode || 'all-safe'));
+
+  return callOptionsAutofillAPI({ formData, signal });
 }
 
 async function callGrokPi(path, { method = 'GET', body, signal } = {}) {
@@ -824,12 +893,16 @@ export async function generateGrokPiVideo({
   });
 }
 
-export async function listGrokPiImages({ limit = 24, signal } = {}) {
-  return callGrokPi(`/api/grokpi/gallery/images?limit=${encodeURIComponent(String(limit))}`, { method: 'GET', signal });
+export async function listGrokPiImages({ limit = 24, cursor = null, signal } = {}) {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (cursor) query.set('cursor', String(cursor));
+  return callGrokPi(`/api/grokpi/gallery/images?${query.toString()}`, { method: 'GET', signal });
 }
 
-export async function listGrokPiVideos({ limit = 24, signal } = {}) {
-  return callGrokPi(`/api/grokpi/gallery/videos?limit=${encodeURIComponent(String(limit))}`, { method: 'GET', signal });
+export async function listGrokPiVideos({ limit = 24, cursor = null, signal } = {}) {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (cursor) query.set('cursor', String(cursor));
+  return callGrokPi(`/api/grokpi/gallery/videos?${query.toString()}`, { method: 'GET', signal });
 }
 
 export async function deleteGrokPiImage(filename, { signal } = {}) {

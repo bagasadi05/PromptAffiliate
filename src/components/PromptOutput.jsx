@@ -174,17 +174,136 @@ function buildSmartHints(selectedPreset, advancedOptions, lang) {
   return hints.slice(0, 4);
 }
 
+function buildHistoryMetaLine(item, lang) {
+  const meta = item?.meta || {};
+  const parts = [];
+
+  if (meta.productName) {
+    parts.push(meta.productName);
+  }
+  if (meta.sceneCount) {
+    parts.push(lang === 'EN' ? `${meta.sceneCount} scenes` : `${meta.sceneCount} scene`);
+  }
+  if (meta.imageCount) {
+    parts.push(lang === 'EN' ? `${meta.imageCount} refs` : `${meta.imageCount} referensi`);
+  }
+  if (meta.outputLanguage) {
+    parts.push(meta.outputLanguage);
+  }
+  if (Number.isFinite(Number(item?.quality?.score))) {
+    parts.push(`Q ${Math.round(Number(item.quality.score))}`);
+  }
+  if (meta.edited) {
+    parts.push(lang === 'EN' ? 'edited' : 'diedit');
+  }
+  if (meta.revisionFeedback) {
+    parts.push(lang === 'EN' ? 'revised' : 'direvisi');
+  }
+
+  return parts.join(' • ');
+}
+
+function buildHistorySourceLine(item, currentInputMeta, lang) {
+  const signature = item?.meta?.signature;
+  if (!signature) {
+    return '';
+  }
+
+  if (currentInputMeta?.signature && currentInputMeta.signature === signature) {
+    return lang === 'EN' ? 'Matches current references' : 'Sesuai dengan referensi aktif';
+  }
+
+  return lang === 'EN' ? 'Generated from a previous image session' : 'Dibuat dari sesi gambar sebelumnya';
+}
+
+function resolveSceneAlignmentStatus(item, lang) {
+  if (item?.missingPinnedTerms?.length > 0) {
+    return lang === 'EN' ? 'Pinned beat missing' : 'Pin wajib belum masuk';
+  }
+  if (item?.status === 'blocked') {
+    return lang === 'EN' ? 'Blocked by avoid-list' : 'Melanggar avoid-list';
+  }
+  if (item?.status === 'missing') {
+    return lang === 'EN' ? 'Needs user intent' : 'Intent user belum masuk';
+  }
+  return lang === 'EN' ? 'Aligned' : 'Selaras';
+}
+
+function buildWarningRevisionSuggestion(warning, lang) {
+  if (!warning) return '';
+
+  if (warning.code === 'scene_count_mismatch') {
+    return lang === 'EN'
+      ? 'Match the output to the requested scene count exactly.'
+      : 'Samakan jumlah scene output dengan jumlah scene yang diminta.';
+  }
+  if (warning.code === 'product_name_missing') {
+    return lang === 'EN'
+      ? 'Mention the exact product name earlier and repeat it in the CTA.'
+      : 'Sebut nama produk secara persis lebih awal dan ulangi lagi di CTA.';
+  }
+  if (warning.code === 'avoid_terms_detected' || warning.code === 'scene_avoid_terms_detected') {
+    return lang === 'EN'
+      ? `Remove these banned or discouraged elements: ${warning.message.replace(/^.*?:\s*/, '')}`
+      : `Hilangkan elemen yang dilarang atau tidak diinginkan ini: ${warning.message.replace(/^.*?:\s*/, '')}`;
+  }
+  if (warning.code === 'user_intent_missing' || warning.code === 'scene_requested_terms_missing') {
+    return lang === 'EN'
+      ? `Make the next version explicitly cover this missing intent: ${warning.message.replace(/^.*?:\s*/, '')}`
+      : `Pastikan versi berikutnya secara eksplisit memuat intent yang belum masuk ini: ${warning.message.replace(/^.*?:\s*/, '')}`;
+  }
+  if (warning.code === 'scene_pin_missing') {
+    return lang === 'EN'
+      ? `Honor this pinned scene requirement exactly: ${warning.message.replace(/^.*?:\s*/, '')}`
+      : `Penuhi pin scene ini secara persis: ${warning.message.replace(/^.*?:\s*/, '')}`;
+  }
+
+  return lang === 'EN'
+    ? `Revise the next prompt to fix this issue: ${warning.message}`
+    : `Perbaiki prompt berikutnya untuk mengatasi masalah ini: ${warning.message}`;
+}
+
+function buildSceneRevisionSuggestion(item, lang) {
+  if (!item) return '';
+
+  if (item.missingPinnedTerms?.length > 0 && item.pinnedInstruction) {
+    return lang === 'EN'
+      ? `Scene ${item.scene}: enforce this pinned requirement exactly: ${item.pinnedInstruction}.`
+      : `Scene ${item.scene}: penuhi pin ini secara persis: ${item.pinnedInstruction}.`;
+  }
+  if (item.status === 'blocked' && item.violatedAvoidTerms?.length > 0) {
+    return lang === 'EN'
+      ? `Scene ${item.scene}: remove these avoid-list elements: ${item.violatedAvoidTerms.join(', ')}.`
+      : `Scene ${item.scene}: hapus elemen avoid-list ini: ${item.violatedAvoidTerms.join(', ')}.`;
+  }
+  if (item.status === 'missing') {
+    return lang === 'EN'
+      ? `Scene ${item.scene}: add the requested selling point or must-include beat more clearly.`
+      : `Scene ${item.scene}: masukkan selling point atau beat wajib yang diminta dengan lebih jelas.`;
+  }
+  if (item.matchedTerms?.length > 0) {
+    return lang === 'EN'
+      ? `Keep Scene ${item.scene} aligned with: ${item.matchedTerms.join(', ')}.`
+      : `Pertahankan Scene ${item.scene} tetap selaras dengan: ${item.matchedTerms.join(', ')}.`;
+  }
+
+  return '';
+}
+
 export default function PromptOutput({
   prompt,
   isLoading,
   progress,
+  generationStage = 'idle',
   quality,
   onRegenerate,
+  onRegenerateWithFeedback,
   history,
   onSelectHistory,
   onDeleteHistory,
   onClearHistory,
   canGenerate,
+  generateDisabledReason,
   onGenerate,
   onCancelGenerate,
   onPromptChange,
@@ -194,11 +313,18 @@ export default function PromptOutput({
   onToggleFavorite,
   onSelectFavorite,
   onClearFavorites,
+  currentInputMeta,
+  currentPromptMeta,
+  canRegenerate = true,
+  regenerateWarning = '',
+  preferenceMemory = null,
 }) {
   const { t, lang } = useI18n();
   const [activeHistoryIndex, setActiveHistoryIndex] = useState(null);
   const [viewMode, setViewMode] = useState('scenes'); // 'scenes' | 'raw' | 'json'
   const [confirmClearHistory, setConfirmClearHistory] = useState(false);
+  const [revisionFeedback, setRevisionFeedback] = useState('');
+  const [compareHistoryId, setCompareHistoryId] = useState(null);
 
   const parsed = useMemo(() => parsePromptSections(prompt), [prompt]);
   const hasScenes = parsed.scenes.length > 0;
@@ -216,6 +342,73 @@ export default function PromptOutput({
   const smartHints = useMemo(
     () => buildSmartHints(selectedPreset, advancedOptions, lang),
     [selectedPreset, advancedOptions, lang],
+  );
+  const learnedMemoryCount = (
+    (Array.isArray(preferenceMemory?.avoidTerms) ? preferenceMemory.avoidTerms.length : 0)
+    + (Array.isArray(preferenceMemory?.steeringNotes) ? preferenceMemory.steeringNotes.length : 0)
+  );
+
+  const progressSteps = useMemo(() => ([
+    { key: 'uploading', label: lang === 'EN' ? 'Preparing references' : 'Menyiapkan referensi' },
+    { key: 'generating', label: lang === 'EN' ? 'Generating prompt' : 'Membuat prompt' },
+    { key: 'postProcessing', label: lang === 'EN' ? 'Finalizing output' : 'Merapikan output' },
+  ]), [lang]);
+
+  const stageLabel = useMemo(() => {
+    if (generationStage === 'uploading') {
+      return lang === 'EN' ? 'Uploading and normalizing references' : 'Mengunggah dan menormalkan referensi';
+    }
+    if (generationStage === 'generating') {
+      return lang === 'EN' ? 'Prompt model is generating the scene plan' : 'Model prompt sedang menyusun scene plan';
+    }
+    if (generationStage === 'postProcessing') {
+      return lang === 'EN' ? 'Applying final output formatting' : 'Menerapkan formatting output akhir';
+    }
+    if (generationStage === 'done') {
+      return lang === 'EN' ? 'Done' : 'Selesai';
+    }
+    return '';
+  }, [generationStage, lang]);
+
+  const currentStageIndex = progressSteps.findIndex((step) => step.key === generationStage);
+
+  const revisionBaseItem = useMemo(() => {
+    const revisionBaseHistoryId = currentPromptMeta?.revisionBaseHistoryId;
+    if (!revisionBaseHistoryId || !Array.isArray(history)) return null;
+
+    return history.find((item) => (
+      item?.meta?.historyId === revisionBaseHistoryId || item?.id === revisionBaseHistoryId
+    )) || null;
+  }, [currentPromptMeta?.revisionBaseHistoryId, history]);
+
+  const revisionCompareMeta = useMemo(() => {
+    const previousPromptSnapshot = String(currentPromptMeta?.previousPromptSnapshot || '').trim();
+    if (!previousPromptSnapshot) return null;
+
+    const originTime = revisionBaseItem?.timestamp;
+    const originPreset = revisionBaseItem?.preset?.name;
+    const originLabel = originTime
+      ? (lang === 'EN' ? `Based on version ${originTime}` : `Berdasarkan versi ${originTime}`)
+      : (lang === 'EN' ? 'Based on previous version' : 'Berdasarkan versi sebelumnya');
+
+    return {
+      previousPromptSnapshot,
+      revisionFeedback: String(currentPromptMeta?.revisionFeedback || '').trim(),
+      originLabel,
+      originPreset: originPreset || '',
+    };
+  }, [
+    currentPromptMeta?.previousPromptSnapshot,
+    currentPromptMeta?.revisionFeedback,
+    lang,
+    revisionBaseItem?.preset?.name,
+    revisionBaseItem?.timestamp,
+  ]);
+
+  const showRevisionCompare = Boolean(
+    revisionCompareMeta
+    && currentPromptMeta?.historyId
+    && compareHistoryId === currentPromptMeta.historyId
   );
 
   const handleCopyAll = async () => {
@@ -271,6 +464,18 @@ export default function PromptOutput({
     onPromptChange(updatedPrompt);
   }, [onPromptChange, parsed.scenes, prompt]);
 
+  const appendRevisionFeedback = useCallback((nextSuggestion) => {
+    const trimmedSuggestion = String(nextSuggestion || '').trim();
+    if (!trimmedSuggestion) return;
+
+    setRevisionFeedback((prev) => {
+      const trimmedPrev = String(prev || '').trim();
+      if (!trimmedPrev) return trimmedSuggestion;
+      if (trimmedPrev.includes(trimmedSuggestion)) return trimmedPrev;
+      return `${trimmedPrev}\n- ${trimmedSuggestion}`;
+    });
+  }, []);
+
   return (
     <div className="prompt-output">
       <div className="panel-header">
@@ -297,7 +502,7 @@ export default function PromptOutput({
             type="button"
             className={`btn btn--generate ${!canGenerate ? 'btn--disabled' : ''}`}
             disabled={!canGenerate || isLoading}
-            onClick={onGenerate}
+            onClick={() => onGenerate?.()}
           >
             {isLoading ? (
               <>
@@ -319,13 +524,19 @@ export default function PromptOutput({
         </div>
         {!canGenerate && (
           <p className="generate-hint">
-            {t('generateHint')}
+            {generateDisabledReason || t('generateHint')}
           </p>
         )}
       </div>
 
       {isLoading && (
         <div className="progress-section">
+          <div className="progress-status">
+            <span className="progress-status__badge">
+              {lang === 'EN' ? 'Live status' : 'Status live'}
+            </span>
+            <span className="progress-status__text">{stageLabel}</span>
+          </div>
           <div className="progress-bar">
             <div
               className="progress-bar__fill"
@@ -333,18 +544,14 @@ export default function PromptOutput({
             />
           </div>
           <div className="progress-steps">
-            <span className={`progress-step ${progress >= 20 ? 'progress-step--done' : ''}`}>
-              {t('progressAnalyze')}
-            </span>
-            <span className={`progress-step ${progress >= 50 ? 'progress-step--done' : ''}`}>
-              {t('progressMap')}
-            </span>
-            <span className={`progress-step ${progress >= 75 ? 'progress-step--done' : ''}`}>
-              {t('progressBuild')}
-            </span>
-            <span className={`progress-step ${progress >= 95 ? 'progress-step--done' : ''}`}>
-              {t('progressPolish')}
-            </span>
+            {progressSteps.map((step, index) => (
+              <span
+                key={step.key}
+                className={`progress-step ${index <= currentStageIndex ? 'progress-step--done' : ''} ${index === currentStageIndex ? 'progress-step--active' : ''}`}
+              >
+                {step.label}
+              </span>
+            ))}
           </div>
         </div>
       )}
@@ -390,6 +597,13 @@ export default function PromptOutput({
                 {quality.warnings.map((warning, index) => (
                   <li key={`${warning.code}-${index}`}>
                     [{String(warning.severity || 'info').toUpperCase()}] {warning.message}
+                    <button
+                      type="button"
+                      className="quality-inline-action"
+                      onClick={() => appendRevisionFeedback(buildWarningRevisionSuggestion(warning, lang))}
+                    >
+                      {lang === 'EN' ? 'Use for revision' : 'Pakai untuk revisi'}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -404,6 +618,65 @@ export default function PromptOutput({
                   <li key={`${index}-${tip}`}>{tip}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {Array.isArray(quality.sceneAlignment) && quality.sceneAlignment.length > 0 && (
+            <div className="quality-card__section">
+              <div className="quality-card__section-title">
+                {lang === 'EN' ? 'Per-scene alignment' : 'Alignment per scene'}
+              </div>
+              <div className="quality-scene-list">
+                {quality.sceneAlignment.map((item) => (
+                  <div
+                    key={`scene-alignment-${item.scene}`}
+                    className={`quality-scene-item quality-scene-item--${item.missingPinnedTerms?.length > 0 ? 'missing' : (item.status || 'aligned')}`}
+                  >
+                    <div className="quality-scene-item__header">
+                      <span className="quality-scene-item__title">
+                        {lang === 'EN' ? `Scene ${item.scene}` : `Scene ${item.scene}`}
+                      </span>
+                      <span className="quality-scene-item__status">
+                        {resolveSceneAlignmentStatus(item, lang)}
+                      </span>
+                    </div>
+                    {Array.isArray(item.matchedTerms) && item.matchedTerms.length > 0 ? (
+                      <div className="quality-scene-item__line">
+                        <strong>{lang === 'EN' ? 'Matched:' : 'Masuk:'}</strong> {item.matchedTerms.join(', ')}
+                      </div>
+                    ) : null}
+                    {Array.isArray(item.violatedAvoidTerms) && item.violatedAvoidTerms.length > 0 ? (
+                      <div className="quality-scene-item__line quality-scene-item__line--warn">
+                        <strong>{lang === 'EN' ? 'Avoid violation:' : 'Pelanggaran avoid:'}</strong> {item.violatedAvoidTerms.join(', ')}
+                      </div>
+                    ) : null}
+                    {item.pinnedInstruction ? (
+                      <div className="quality-scene-item__line">
+                        <strong>{lang === 'EN' ? 'Pinned:' : 'Pin:'}</strong> {item.pinnedInstruction}
+                      </div>
+                    ) : null}
+                    {Array.isArray(item.missingPinnedTerms) && item.missingPinnedTerms.length > 0 ? (
+                      <div className="quality-scene-item__line quality-scene-item__line--warn">
+                        <strong>{lang === 'EN' ? 'Missing pin:' : 'Pin belum masuk:'}</strong> {item.missingPinnedTerms.join(', ')}
+                      </div>
+                    ) : null}
+                    {item.status === 'missing' ? (
+                      <div className="quality-scene-item__line">
+                        {lang === 'EN'
+                          ? 'No requested selling point or must-include beat detected in this scene yet.'
+                          : 'Belum ada selling point atau beat wajib yang terdeteksi di scene ini.'}
+                      </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="quality-scene-item__action"
+                      onClick={() => appendRevisionFeedback(buildSceneRevisionSuggestion(item, lang))}
+                    >
+                      {lang === 'EN' ? 'Send to revision note' : 'Kirim ke catatan revisi'}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -454,11 +727,139 @@ export default function PromptOutput({
                   {t('downloadJson')}
                 </button>
               </div>
-              <button type="button" className="btn btn--outline btn--sm" onClick={onRegenerate}>
+              <button type="button" className="btn btn--outline btn--sm" onClick={onRegenerate} disabled={!canRegenerate}>
                 {t('regenerate')}
               </button>
             </div>
           </div>
+
+          {regenerateWarning && (
+            <div className="result-warning">
+              <strong>{lang === 'EN' ? 'Regenerate locked.' : 'Regenerate dikunci.'}</strong> {regenerateWarning}
+            </div>
+          )}
+
+          {currentPromptMeta?.signature && (
+            <div className="result-meta">
+              <span className="result-meta__chip">
+                {lang === 'EN' ? `Source refs: ${currentPromptMeta.imageCount || 0}` : `Sumber referensi: ${currentPromptMeta.imageCount || 0}`}
+              </span>
+              {currentPromptMeta.productName ? (
+                <span className="result-meta__chip">
+                  {lang === 'EN' ? `Product: ${currentPromptMeta.productName}` : `Produk: ${currentPromptMeta.productName}`}
+                </span>
+              ) : null}
+              {currentPromptMeta.edited ? (
+                <span className="result-meta__chip result-meta__chip--warn">
+                  {lang === 'EN' ? 'Edited after generation' : 'Diedit setelah generate'}
+                </span>
+              ) : null}
+              {revisionCompareMeta ? (
+                <span className="result-meta__chip">
+                  {revisionCompareMeta.originLabel}
+                </span>
+              ) : null}
+              {learnedMemoryCount > 0 ? (
+                <span className="result-meta__chip">
+                  {lang === 'EN' ? `Learned memory: ${learnedMemoryCount}` : `Memori belajar: ${learnedMemoryCount}`}
+                </span>
+              ) : null}
+              {currentInputMeta?.signature && currentPromptMeta.signature === currentInputMeta.signature ? (
+                <span className="result-meta__chip result-meta__chip--ok">
+                  {lang === 'EN' ? 'Matches current references' : 'Sesuai dengan referensi aktif'}
+                </span>
+              ) : null}
+            </div>
+          )}
+
+          <div className="revision-panel">
+            <div className="revision-panel__header">
+              <strong>{lang === 'EN' ? 'Refine next generation' : 'Perbaiki generate berikutnya'}</strong>
+              <span className="revision-panel__hint">
+                {lang === 'EN'
+                  ? 'Describe what should change in the next prompt.'
+                  : 'Tulis apa yang harus diubah pada prompt berikutnya.'}
+              </span>
+            </div>
+            <textarea
+              className="option-textarea revision-panel__textarea"
+              value={revisionFeedback}
+              onChange={(event) => setRevisionFeedback(event.target.value)}
+              placeholder={lang === 'EN'
+                ? 'Example: make the hook softer, mention the product name earlier, avoid dramatic lighting, focus on office-girl audience.'
+                : 'Contoh: buat hook lebih soft, sebut nama produk lebih awal, hindari lighting dramatis, fokus ke audiens cewek kantor.'}
+              rows={3}
+            />
+            <div className="revision-panel__actions">
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                onClick={() => setRevisionFeedback('')}
+                disabled={!revisionFeedback}
+              >
+                {lang === 'EN' ? 'Clear note' : 'Hapus catatan'}
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => {
+                  const trimmed = revisionFeedback.trim();
+                  if (!trimmed || !onRegenerateWithFeedback) return;
+                  onRegenerateWithFeedback(trimmed);
+                  setRevisionFeedback('');
+                }}
+                disabled={!revisionFeedback.trim() || !canRegenerate}
+              >
+                {lang === 'EN' ? 'Regenerate with feedback' : 'Regenerate dengan feedback'}
+              </button>
+            </div>
+          </div>
+
+          {revisionCompareMeta ? (
+            <div className="revision-compare">
+              <div className="revision-compare__header">
+                <div>
+                  <strong>{lang === 'EN' ? 'Revision memory' : 'Memori revisi'}</strong>
+                  <div className="revision-compare__subhead">
+                    {revisionCompareMeta.originLabel}
+                    {revisionCompareMeta.originPreset ? ` • ${revisionCompareMeta.originPreset}` : ''}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn--outline btn--sm"
+                  onClick={() => setCompareHistoryId((prev) => (
+                    prev === currentPromptMeta?.historyId ? null : currentPromptMeta?.historyId
+                  ))}
+                >
+                  {showRevisionCompare
+                    ? (lang === 'EN' ? 'Hide compare' : 'Sembunyikan compare')
+                    : (lang === 'EN' ? 'Compare revision' : 'Bandingkan revisi')}
+                </button>
+              </div>
+              {revisionCompareMeta.revisionFeedback ? (
+                <div className="revision-compare__feedback">
+                  <strong>{lang === 'EN' ? 'User feedback:' : 'Feedback user:'}</strong> {revisionCompareMeta.revisionFeedback}
+                </div>
+              ) : null}
+              {showRevisionCompare ? (
+                <div className="revision-compare__grid">
+                  <div className="revision-compare__pane">
+                    <div className="revision-compare__label">
+                      {lang === 'EN' ? 'Previous version' : 'Versi sebelumnya'}
+                    </div>
+                    <pre className="revision-compare__content">{revisionCompareMeta.previousPromptSnapshot}</pre>
+                  </div>
+                  <div className="revision-compare__pane">
+                    <div className="revision-compare__label">
+                      {lang === 'EN' ? 'Current version' : 'Versi saat ini'}
+                    </div>
+                    <pre className="revision-compare__content">{prompt}</pre>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           {viewMode === 'json' ? (
             <div className="json-output">
@@ -543,6 +944,12 @@ export default function PromptOutput({
                     <div className="history-item__info">
                       <span className="history-item__name">{item.preset.name}</span>
                       <span className="history-item__time">{item.timestamp}</span>
+                      <span className="history-item__meta-line">{buildHistoryMetaLine(item, lang)}</span>
+                      {buildHistorySourceLine(item, currentInputMeta, lang) ? (
+                        <span className={`history-item__source ${currentInputMeta?.signature && currentInputMeta.signature === item?.meta?.signature ? 'history-item__source--ok' : 'history-item__source--warn'}`}>
+                          {buildHistorySourceLine(item, currentInputMeta, lang)}
+                        </span>
+                      ) : null}
                     </div>
                   </button>
                   <div className="history-item__actions">
@@ -602,6 +1009,12 @@ export default function PromptOutput({
                   <div className="history-item__info">
                     <span className="history-item__name">{item.preset.name}</span>
                     <span className="history-item__time">{item.timestamp}</span>
+                    <span className="history-item__meta-line">{buildHistoryMetaLine(item, lang)}</span>
+                    {buildHistorySourceLine(item, currentInputMeta, lang) ? (
+                      <span className={`history-item__source ${currentInputMeta?.signature && currentInputMeta.signature === item?.meta?.signature ? 'history-item__source--ok' : 'history-item__source--warn'}`}>
+                        {buildHistorySourceLine(item, currentInputMeta, lang)}
+                      </span>
+                    ) : null}
                   </div>
                 </button>
                 <button

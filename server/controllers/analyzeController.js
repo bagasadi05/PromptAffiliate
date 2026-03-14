@@ -11,6 +11,11 @@ import {
     buildPresetAnalysisUserPrompt,
     parsePresetAnalysisOutput,
 } from '../services/presetAnalysisService.js';
+import {
+    buildOptionsAutofillSystemPrompt,
+    buildOptionsAutofillUserPrompt,
+    parseOptionsAutofillOutput,
+} from '../services/optionsAutofillService.js';
 
 const analyzeProductSchema = z.object({
     language: z.enum(['ID', 'EN']).optional(),
@@ -51,6 +56,31 @@ const analyzePresetSchema = z.object({
     language: z.enum(['ID', 'EN']).optional(),
 }).passthrough();
 
+const autofillOptionsSchema = z.object({
+    language: z.enum(['ID', 'EN']).optional(),
+    mode: z.enum(['recommended', 'all-safe']).optional(),
+    preset: z.record(z.any()).optional(),
+    options: z.record(z.any()).optional(),
+    preferenceMemory: z.object({
+        avoidTerms: z.array(z.string()).optional(),
+        steeringNotes: z.array(z.string()).optional(),
+    }).passthrough().optional(),
+}).passthrough();
+
+function normalizeAutofillFields(fields = {}) {
+    const nextFields = { ...fields };
+
+    if (typeof nextFields.preferenceMemory === 'string') {
+        try {
+            nextFields.preferenceMemory = JSON.parse(nextFields.preferenceMemory);
+        } catch {
+            nextFields.preferenceMemory = undefined;
+        }
+    }
+
+    return nextFields;
+}
+
 export async function handleAnalyzePreset(request, reply) {
     try {
         const { files, fields } = await parseMultipartData(request);
@@ -72,6 +102,35 @@ export async function handleAnalyzePreset(request, reply) {
         return { analysis };
     } catch (error) {
         request.log.error('[analyze-preset] ' + error.message);
+        if (error instanceof z.ZodError) {
+            reply.code(400).send({ error: 'Validation Error', details: error.errors });
+        } else {
+            const statusCode = error.statusCode || 500;
+            reply.code(statusCode).send({ error: error.message || 'Server error.' });
+        }
+    }
+}
+
+export async function handleAutofillOptions(request, reply) {
+    try {
+        const { files, fields } = await parseMultipartData(request);
+
+        if (files.length === 0) {
+            return reply.code(400).send({ error: 'Validation Error', details: 'No image provided.' });
+        }
+
+        const input = autofillOptionsSchema.parse(normalizeAutofillFields(fields));
+        const images = files.slice(0, 3).map((file) => file.base64);
+        const imageMimeTypes = files.slice(0, 3).map((file) => file.mimetype);
+
+        const systemPrompt = buildOptionsAutofillSystemPrompt(input);
+        const userPrompt = buildOptionsAutofillUserPrompt(input);
+        const rawText = await callGemini(systemPrompt, userPrompt, images, imageMimeTypes, { creativity: 45 });
+        const suggestions = parseOptionsAutofillOutput(rawText);
+
+        return { suggestions };
+    } catch (error) {
+        request.log.error('[autofill-options] ' + error.message);
         if (error instanceof z.ZodError) {
             reply.code(400).send({ error: 'Validation Error', details: error.errors });
         } else {

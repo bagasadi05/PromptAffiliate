@@ -69,6 +69,22 @@ npm run preview
 npm run start:api
 ```
 
+## Deploy Online
+
+Untuk pemakaian pribadi, target yang paling cocok untuk repo ini adalah **Vercel** karena:
+
+- sudah ada adapter serverless di `api/index.js`
+- sudah ada routing deploy di `vercel.json`
+- frontend dan `/api` bisa tetap satu domain
+
+Panduan ringkas deploy ada di [DEPLOY_VERCEL.md](./DEPLOY_VERCEL.md).
+
+Catatan:
+
+- cocok untuk prompt generator utama dan low traffic
+- kurang ideal untuk queue/worker background yang berat
+- jika nanti ingin fitur BullMQ/GrokPI job berjalan lebih serius, pindah ke Render atau Railway lebih tepat
+
 ## Mode Mock
 
 Mode mock diatur dari `src/services/gemini.js`:

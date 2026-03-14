@@ -53,23 +53,23 @@ export function useGrokPiForm(presets, initialPreset, initialPromptOptions) {
     const [isReady, setIsReady] = useState(false);
 
     // Derive preset and product focus.
+    const effectiveSelectedPresetId = useMemo(() => {
+        if (!presets.length) return '';
+        if (presets.some((item) => item.id === selectedPresetId)) {
+            return selectedPresetId;
+        }
+        return initialPreset?.id || presets[0]?.id || '';
+    }, [presets, selectedPresetId, initialPreset]);
+
     const selectedPreset = useMemo(
-        () => presets.find((item) => item.id === selectedPresetId) || null,
-        [presets, selectedPresetId]
+        () => presets.find((item) => item.id === effectiveSelectedPresetId) || null,
+        [presets, effectiveSelectedPresetId]
     );
     const resolvedProductFocus = useMemo(() => {
         if (form.productFocus === 'lainnya') return String(form.productFocusCustom || '').trim();
         return String(form.productFocus || '').trim();
     }, [form.productFocus, form.productFocusCustom]);
     const normalizedAspectRatio = form.aspectRatio === 'auto' ? undefined : form.aspectRatio;
-
-    // Ensure selected preset is valid
-    useEffect(() => {
-        if (!presets.length) return;
-        if (!presets.some((p) => p.id === selectedPresetId)) {
-            setSelectedPresetId(initialPreset?.id || presets[0]?.id || '');
-        }
-    }, [presets, selectedPresetId, initialPreset]);
 
     // Load from Storage
     useEffect(() => {
@@ -112,12 +112,12 @@ export function useGrokPiForm(presets, initialPreset, initialPromptOptions) {
         if (!isReady) return;
         setItem(AUTOMATION_STORAGE_KEY, {
             form,
-            selectedPresetId,
+            selectedPresetId: effectiveSelectedPresetId,
             referenceImageMimeType,
             imageName,
             updatedAt: Date.now(),
         });
-    }, [form, selectedPresetId, referenceImageMimeType, imageName, isReady]);
+    }, [form, effectiveSelectedPresetId, referenceImageMimeType, imageName, isReady]);
 
     // Cleanup Object URLs to avoid memory leaks
     useEffect(() => {
@@ -181,7 +181,7 @@ export function useGrokPiForm(presets, initialPreset, initialPromptOptions) {
     return {
         form,
         setField,
-        selectedPresetId,
+        selectedPresetId: effectiveSelectedPresetId,
         setSelectedPresetId,
         selectedPreset,
         resolvedProductFocus,

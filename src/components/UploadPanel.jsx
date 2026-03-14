@@ -9,8 +9,9 @@ const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_IMAGES = 4;
 
 export default function UploadPanel({ files, previews, imageReferences, onFilesChange, onClear, onAnalyzePreset, isAnalyzing, canAnalyzePreset = true }) {
-    const { t } = useI18n();
+    const { t, lang } = useI18n();
     const [isDragging, setIsDragging] = useState(false);
+    const [referenceMode, setReferenceMode] = useState('simple');
     const inputRef = useRef(null);
 
     // Support both single & multi
@@ -38,6 +39,9 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
 
     const handleNewFiles = useCallback(async (newFiles) => {
         const validFiles = [];
+        let compressedCount = 0;
+        let totalOriginalSize = 0;
+        let totalCompressedSize = 0;
         for (const f of newFiles) {
             if (!validateFile(f)) continue;
             if (fileList.length + validFiles.length >= MAX_IMAGES) {
@@ -48,8 +52,9 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
                 const { file: compressed, originalSize, compressedSize } = await compressImage(f);
                 validFiles.push(compressed);
                 if (compressedSize < originalSize) {
-                    const saved = ((1 - compressedSize / originalSize) * 100).toFixed(0);
-                    showToast(t('uploadCompressedInfo').replace('{percent}', String(saved)), 'info', 2000);
+                    compressedCount += 1;
+                    totalOriginalSize += originalSize;
+                    totalCompressedSize += compressedSize;
                 }
             } catch {
                 validFiles.push(f);
@@ -65,8 +70,15 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
             ];
             onFilesChange(mergedFiles, mergedPreviews, mergedReferences);
             showToast(t('uploadSuccess'), 'success');
+            if (compressedCount > 0 && totalCompressedSize < totalOriginalSize) {
+                const saved = ((1 - totalCompressedSize / totalOriginalSize) * 100).toFixed(0);
+                const summary = lang === 'EN'
+                    ? `${compressedCount} image${compressedCount > 1 ? 's' : ''}`
+                    : `${compressedCount} gambar`;
+                showToast(`${summary} • ${t('uploadCompressedInfo').replace('{percent}', String(saved))}`, 'info', 2400);
+            }
         }
-    }, [fileList, previewList, referenceList, validateFile, onFilesChange, t]);
+    }, [fileList, previewList, referenceList, validateFile, onFilesChange, t, lang]);
 
     const handleDrop = useCallback((e) => {
         e.preventDefault();
@@ -211,59 +223,77 @@ export default function UploadPanel({ files, previews, imageReferences, onFilesC
                                     >
                                         ✕
                                     </button>
-                                    <div className="preview-reference-controls" onClick={(e) => e.stopPropagation()}>
-                                        <div className="preview-reference-header">
-                                            <div className="preview-reference-title-row">
-                                                <strong>{`${t('uploadRefLabel')} #${i + 1}`}</strong>
-                                                {isPrimary && <span className="preview-primary-badge">{t('uploadPrimaryLabel')}</span>}
+                                    {referenceMode === 'advanced' ? (
+                                        <div className="preview-reference-controls" onClick={(e) => e.stopPropagation()}>
+                                            <div className="preview-reference-header">
+                                                <div className="preview-reference-title-row">
+                                                    <strong>{`${t('uploadRefLabel')} #${i + 1}`}</strong>
+                                                    {isPrimary && <span className="preview-primary-badge">{t('uploadPrimaryLabel')}</span>}
+                                                </div>
+                                                <span>{Math.round(reference.influence)}%</span>
                                             </div>
-                                            <span>{Math.round(reference.influence)}%</span>
-                                        </div>
-                                        <select
-                                            className="option-select option-select--compact"
-                                            value={reference.role}
-                                            onChange={(e) => handleReferenceChange(i, { role: e.target.value })}
-                                        >
-                                            {IMAGE_REFERENCE_ROLES.map((role) => (
-                                                <option key={role.value} value={role.value}>{role.label}</option>
-                                            ))}
-                                        </select>
-                                        <input
-                                            type="range"
-                                            min={1}
-                                            max={100}
-                                            step={1}
-                                            value={Math.round(reference.influence)}
-                                            onChange={(e) => handleReferenceChange(i, { influence: parseInt(e.target.value, 10) })}
-                                        />
-                                        <div className="preview-reference-order-actions">
-                                            <button
-                                                type="button"
-                                                className="btn btn--outline btn--sm"
-                                                onClick={() => handleMoveImage(i, -1)}
-                                                disabled={i === 0}
-                                                title={t('uploadMoveUp')}
-                                                aria-label={t('uploadMoveUp')}
+                                            <select
+                                                className="option-select option-select--compact"
+                                                value={reference.role}
+                                                onChange={(e) => handleReferenceChange(i, { role: e.target.value })}
                                             >
-                                                ↑
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="btn btn--outline btn--sm"
-                                                onClick={() => handleMoveImage(i, 1)}
-                                                disabled={i === fileList.length - 1}
-                                                title={t('uploadMoveDown')}
-                                                aria-label={t('uploadMoveDown')}
-                                            >
-                                                ↓
-                                            </button>
+                                                {IMAGE_REFERENCE_ROLES.map((role) => (
+                                                    <option key={role.value} value={role.value}>{role.label}</option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                type="range"
+                                                min={1}
+                                                max={100}
+                                                step={1}
+                                                value={Math.round(reference.influence)}
+                                                onChange={(e) => handleReferenceChange(i, { influence: parseInt(e.target.value, 10) })}
+                                            />
+                                            <div className="preview-reference-order-actions">
+                                                <button
+                                                    type="button"
+                                                    className="btn btn--outline btn--sm"
+                                                    onClick={() => handleMoveImage(i, -1)}
+                                                    disabled={i === 0}
+                                                    title={t('uploadMoveUp')}
+                                                    aria-label={t('uploadMoveUp')}
+                                                >
+                                                    ↑
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn--outline btn--sm"
+                                                    onClick={() => handleMoveImage(i, 1)}
+                                                    disabled={i === fileList.length - 1}
+                                                    title={t('uploadMoveDown')}
+                                                    aria-label={t('uploadMoveDown')}
+                                                >
+                                                    ↓
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div className="preview-reference-summary">
+                                            <span className="preview-reference-summary__label">{`${t('uploadRefLabel')} #${i + 1}`}</span>
+                                            <span className="preview-reference-summary__meta">
+                                                {reference.role} • {Math.round(reference.influence)}%
+                                            </span>
+                                            {isPrimary && <span className="preview-primary-badge">{t('uploadPrimaryLabel')}</span>}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
                     </div>
                     <div className="preview-actions">
+                        <button
+                            className="btn btn--secondary btn--sm"
+                            onClick={() => setReferenceMode((prev) => (prev === 'simple' ? 'advanced' : 'simple'))}
+                        >
+                            {referenceMode === 'simple'
+                                ? (lang === 'EN' ? 'Advanced reference controls' : 'Kontrol referensi lanjutan')
+                                : (lang === 'EN' ? 'Simple upload view' : 'Tampilan upload sederhana')}
+                        </button>
                         {fileList.length < MAX_IMAGES && (
                             <button
                                 className="btn btn--outline btn--sm"

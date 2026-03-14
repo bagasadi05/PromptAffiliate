@@ -51,6 +51,10 @@ export async function createGrokPiJob(request, reply) {
             message: 'Pipeline Automasi berhasil dimasukkan ke Antrean. Polling for status.',
         });
     } catch (error) {
+        const message = String(error?.message || '').toLowerCase();
+        if (error?.code === 'FST_INVALID_MULTIPART_CONTENT_TYPE' || message.includes('multipart')) {
+            return reply.status(400).send({ error: { code: 'NO_IMAGE_PROVIDED', message: 'Gambar referensi wajib disertakan.' } });
+        }
         request.log.error(error);
         return reply.status(500).send({ error: { code: 'INTERNAL_SERVER_ERROR', message: 'Gagal membuat antrean.' } });
     }

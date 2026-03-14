@@ -369,6 +369,129 @@ function sanitizeInlineText(value, fallback = '') {
   return String(value).replace(/\s+/g, ' ').trim() || fallback;
 }
 
+function parseUserConstraintList(value) {
+  return [...new Set(
+    String(value || '')
+      .split(/\n|,|;/)
+      .map((item) => sanitizeInlineText(item))
+      .filter(Boolean),
+  )].slice(0, 8);
+}
+
+function parseScenePinnedConstraints(value, sceneCount = 8) {
+  return String(value || '')
+    .split('\n')
+    .map((line) => String(line || '').trim())
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/^(?:scene|adegan)?\s*(\d+)\s*[:.-]\s*(.+)$/i);
+      if (!match) return null;
+
+      const scene = Number.parseInt(match[1], 10);
+      const instruction = sanitizeInlineText(match[2]);
+      if (!Number.isFinite(scene) || scene < 1 || scene > sceneCount || !instruction) return null;
+
+      const terms = parseUserConstraintList(instruction);
+      return {
+        scene,
+        instruction,
+        terms: terms.length > 0 ? terms : [instruction],
+      };
+    })
+    .filter(Boolean)
+    .slice(0, sceneCount);
+}
+
+function buildUserIntentBlock(options) {
+  const lines = [];
+  const targetAudience = sanitizeInlineText(options.targetAudience);
+  const sellingPoints = parseUserConstraintList(options.keySellingPoints);
+  const mustInclude = parseUserConstraintList(options.mustInclude);
+  const avoidElements = parseUserConstraintList(options.avoidElements);
+
+  if (targetAudience) {
+    lines.push(`- TARGET AUDIENCE: ${targetAudience}`);
+  }
+  if (sellingPoints.length > 0) {
+    lines.push(`- PRIORITIZE THESE SELLING POINTS: ${sellingPoints.join(' | ')}`);
+  }
+  if (mustInclude.length > 0) {
+    lines.push(`- NON-NEGOTIABLE MUST INCLUDE: ${mustInclude.join(' | ')}`);
+  }
+  if (avoidElements.length > 0) {
+    lines.push(`- STRICTLY AVOID: ${avoidElements.join(' | ')}`);
+  }
+
+  if (lines.length === 0) {
+    return '';
+  }
+
+  return `USER SUCCESS CRITERIA (Highest priority after safety):\n${lines.join('\n')}\n- If preset flavor conflicts with the user success criteria, preserve the user success criteria.\n`;
+}
+
+function buildLearnedPreferenceBlock(options) {
+  const learnedAvoidElements = [...new Set(
+    (Array.isArray(options.learnedAvoidElements) ? options.learnedAvoidElements : [])
+      .map((item) => sanitizeInlineText(item))
+      .filter(Boolean),
+  )].slice(0, 8);
+  const learnedSteeringNotes = [...new Set(
+    (Array.isArray(options.learnedSteeringNotes) ? options.learnedSteeringNotes : [])
+      .map((item) => sanitizeInlineText(item))
+      .filter(Boolean),
+  )].slice(0, 8);
+
+  if (learnedAvoidElements.length === 0 && learnedSteeringNotes.length === 0) {
+    return '';
+  }
+
+  const lines = [];
+  if (learnedAvoidElements.length > 0) {
+    lines.push(`- RECURRING AVOIDS TO KEEP HONORING: ${learnedAvoidElements.join(' | ')}`);
+  }
+  if (learnedSteeringNotes.length > 0) {
+    lines.push(`- RECURRING STEERING NOTES: ${learnedSteeringNotes.join(' | ')}`);
+  }
+
+  return `LEARNED USER PREFERENCES (soft memory from repeated corrections):\n${lines.join('\n')}\n- Use this memory only when it does not conflict with explicit instructions from the current request.\n`;
+}
+
+function buildScenePinBlock(options, sceneCount) {
+  const scenePins = parseScenePinnedConstraints(options.sceneMustIncludeMap, sceneCount);
+  if (scenePins.length === 0) {
+    return '';
+  }
+
+  const lines = scenePins.map((item) => `- Scene ${item.scene}: ${item.instruction}`);
+  return `SCENE-SPECIFIC HARD CONSTRAINTS:\n${lines.join('\n')}\n- These pinned constraints must appear in their exact scene numbers.\n`;
+}
+
+function buildRevisionFeedbackBlock(options) {
+  const revisionFeedback = sanitizeInlineText(options.revisionFeedback);
+  const previousPromptSnapshot = String(options.previousPromptSnapshot || '').trim();
+
+  if (!revisionFeedback) {
+    return '';
+  }
+
+  const trimmedSnapshot = previousPromptSnapshot
+    ? previousPromptSnapshot.slice(0, 4000).trim()
+    : '';
+
+  const lines = [
+    'REVISION MODE: Improve the next prompt using the user feedback below.',
+    `- USER FEEDBACK: ${revisionFeedback}`,
+    '- Keep constraints that already work, but revise any part that conflicts with this feedback.',
+    '- Treat this revision feedback as a hard requirement for the next output.',
+  ];
+
+  if (trimmedSnapshot) {
+    lines.push(`PREVIOUS PROMPT SNAPSHOT:\n${trimmedSnapshot}`);
+  }
+
+  return `${lines.join('\n')}\n`;
+}
+
 function parseBpmRange(bpmRange) {
   const numbers = String(bpmRange || '')
     .match(/\d+/g)
@@ -561,7 +684,7 @@ function buildAffiliatePsychologyBlock(options) {
   const hookStrength = options.hookStrength || 'medium';
 
   // Skip if fully auto (AI decides)
-  if (psychologyTrigger === 'auto' && !hookFormula) return '';
+  if (psychologyTrigger === 'auto' && !hookFormula && hookStrength === 'medium') return '';
 
   const psychVocab = AFFILIATE_PSYCHOLOGY_VOCAB[psychologyTrigger] || AFFILIATE_PSYCHOLOGY_VOCAB.auto;
   const hook = hookFormula && HOOK_FORMULA_MAP[hookFormula] ? HOOK_FORMULA_MAP[hookFormula] : null;
@@ -569,6 +692,7 @@ function buildAffiliatePsychologyBlock(options) {
   const hookStrengthMap = {
     soft: 'subtle, organic, woven into the narrative without feeling like a sales pitch',
     medium: 'clear and purposeful, viewer feels the pull without being pressured',
+    hard: 'direct, high-urgency, strong emotional trigger — viewer must act NOW',
     aggressive: 'direct, high-urgency, strong emotional trigger — viewer must act NOW',
   };
   const strengthInstruction = hookStrengthMap[hookStrength] || hookStrengthMap.medium;
@@ -776,6 +900,7 @@ OUTPUT CONTRACT (STRICT):
 - ${buildNegativePromptInstruction(mergedOptions.includeNegativePrompt)}
 - ${voiceLabel ? `Use "${voiceLabel}:" line in every scene.` : 'No Dialogue/Voiceover/Lip-sync lines anywhere.'}
 - Always preserve identity continuity from reference image and never describe face/skin/hair/body features.
+- USER SUCCESS CRITERIA OVERRIDE: when the user provides target audience, selling points, must-include beats, or avoid-list instructions, those constraints must be explicitly honored in the generated scenes.
 - CONVERSION CHECK: Before writing each scene, ask: does this scene advance the viewer toward taking action? If not, revise.
 - If uncertain, prefer concrete, camera-ready details over abstract adjectives.`;
 }
@@ -851,6 +976,10 @@ export function buildUserPrompt(preset, options, imageReferences = []) {
     mergedOptions.hookFormula,
   );
   const voiceExample = voiceConstraints.example || '';
+  const userIntentBlock = buildUserIntentBlock(mergedOptions);
+  const learnedPreferenceBlock = buildLearnedPreferenceBlock(mergedOptions);
+  const scenePinBlock = buildScenePinBlock(mergedOptions, sceneCount);
+  const revisionFeedbackBlock = buildRevisionFeedbackBlock(mergedOptions);
 
   // Cinematic Product Hook (Pro-Level)
   const cinematicBlock = buildCinematicHookBlock(mergedOptions);
@@ -901,6 +1030,10 @@ CRITICAL — TEMPORAL PHYSICS: Cloth inertia, hair momentum, jewelry swing must 
 
 ${subjectDescription ? `SUBJECT NOTES (non-facial constraints only): ${subjectDescription}` : 'SUBJECT NOTES: none'}
 
+${userIntentBlock}
+${learnedPreferenceBlock}
+${scenePinBlock}
+${revisionFeedbackBlock}
 CONVERSION OBJECTIVE: ${conversionInstruction}${mergedOptions.productName ? ` Product: "${sanitizeInlineText(mergedOptions.productName)}"` : ''}
 
 ${affiliatePsychBlock}${cinematicBlock}CONVERSION NARRATIVE ARC:
@@ -950,6 +1083,9 @@ Generate exactly ${sceneCount} scenes. For each scene:
 5. End paragraph with a clear motion-matched transition cue into the next scene (describe the exact action that bridges both scenes).
 6. Add one scene-specific Negative Prompt line only if enabled — make it specific to the motion type in this scene.
 7. Add one spoken line using the required voice label only if voice is enabled — line must serve the scene's narrative arc role${mergedOptions.productName ? `, and must contain the product name "${sanitizeInlineText(mergedOptions.productName)}" in at minimum the CTA scene` : ''}.
+8. Explicitly satisfy USER SUCCESS CRITERIA when provided: target the right audience, emphasize the requested selling points, include the must-have beats, and avoid banned elements or tones.
+9. If SCENE-SPECIFIC HARD CONSTRAINTS are provided, satisfy them in their exact scene numbers.
+10. If REVISION MODE is active, correct the previous prompt based on the feedback instead of repeating the same structural mistakes.
 
 FORMAT (STRICT, repeat for all scenes):
 SCENE 1: [TITLE IN UPPERCASE — must describe the narrative arc role]
@@ -959,6 +1095,106 @@ ${includeNegativePrompt ? 'Negative Prompt: [scene-specific and motion-specific 
 ${negExample}
 
 DO NOT output anything outside the SCENE blocks.`;
+}
+
+export function buildStructuredRepairPrompt(preset, options, imageReferences = []) {
+  const basePrompt = buildUserPrompt(preset, options, imageReferences);
+  const sceneCount = normalizeSceneCount(options?.sceneCount);
+  const voiceLabel = resolveVoiceLineLabel(options?.voiceStyle);
+  const includeNegativePrompt = Boolean(options?.includeNegativePrompt);
+
+  return `${basePrompt}
+
+REPAIR OUTPUT MODE (STRICT JSON):
+You are now repairing a previously failed prompt. Return VALID JSON only. No markdown, no comments, no prose outside JSON.
+
+JSON SCHEMA:
+{
+  "scenes": [
+    {
+      "scene": 1,
+      "title": "HOOK TITLE",
+      "duration": "6s",
+      "beats": 12,
+      "move": "snap reveal",
+      "camera": "50mm handheld",
+      "prompt": "single rich paragraph",
+      ${includeNegativePrompt ? '"negativePrompt": "scene-specific blockers",' : ''}
+      ${voiceLabel ? `"voiceLine": "one ${voiceLabel} line",` : ''}
+      "checklist": ["what was fixed in this scene"]
+    }
+  ]
+}
+
+STRICT RULES:
+- Return exactly ${sceneCount} scenes in the "scenes" array.
+- Preserve the exact scene numbers 1..${sceneCount}.
+- Use the pinned scene constraints and repair feedback as hard requirements.
+- Keep prompts production-ready, concrete, and compliant with the earlier instructions.
+- ${includeNegativePrompt ? 'Include "negativePrompt" for every scene.' : 'Do not include "negativePrompt" fields.'}
+- ${voiceLabel ? `Include "voiceLine" for every scene using content that would fit the "${voiceLabel}" line.` : 'Do not include "voiceLine" fields.'}`;
+}
+
+function extractJsonObjectCandidate(rawText) {
+  const normalized = String(rawText || '').trim().replace(/^\s*```json\s*|\s*```\s*$/gim, '').trim();
+  if (!normalized) return '';
+
+  if (normalized.startsWith('{') && normalized.endsWith('}')) {
+    return normalized;
+  }
+
+  const firstBrace = normalized.indexOf('{');
+  const lastBrace = normalized.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    return normalized.slice(firstBrace, lastBrace + 1);
+  }
+
+  return '';
+}
+
+export function normalizeStructuredRepairOutput(rawText, options = {}) {
+  const jsonCandidate = extractJsonObjectCandidate(rawText);
+  if (!jsonCandidate) return '';
+
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonCandidate);
+  } catch {
+    return '';
+  }
+
+  const scenes = Array.isArray(parsed?.scenes) ? parsed.scenes : [];
+  if (scenes.length === 0) return '';
+
+  const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+  const voiceLabel = resolveVoiceLineLabel(mergedOptions.voiceStyle);
+  const includeNegativePrompt = Boolean(mergedOptions.includeNegativePrompt);
+
+  const formattedScenes = scenes.map((scene, index) => {
+    const sceneNumber = Number.parseInt(scene?.scene, 10) || index + 1;
+    const title = String(scene?.title || `SCENE ${sceneNumber}`).trim().toUpperCase();
+    const duration = sanitizeInlineText(scene?.duration, '6s');
+    const beats = Number.parseInt(scene?.beats, 10) || 12;
+    const move = sanitizeInlineText(scene?.move, 'controlled movement');
+    const camera = sanitizeInlineText(scene?.camera, '50mm handheld');
+    const prompt = String(scene?.prompt || '').trim();
+    const lines = [
+      `SCENE ${sceneNumber}: ${title}`,
+      `Duration: ${duration} | Beats: ${beats} | Move: ${move} | Camera: ${camera}`,
+      `Prompt: ${prompt}`,
+    ];
+
+    if (includeNegativePrompt && scene?.negativePrompt) {
+      lines.push(`Negative Prompt: ${String(scene.negativePrompt).trim()}`);
+    }
+    if (voiceLabel && scene?.voiceLine) {
+      lines.push(`${voiceLabel}: ${String(scene.voiceLine).trim()}`);
+    }
+
+    return lines.join('\n');
+  });
+
+  return formattedScenes.join('\n\n');
 }
 
 export function postProcessPromptOutput(rawText, options = {}) {
@@ -1017,6 +1253,12 @@ function normalizeForQuality(text) {
 function countWords(text) {
   const tokens = String(text || '').trim().match(/\S+/g);
   return tokens ? tokens.length : 0;
+}
+
+function containsNormalizedTerm(text, term) {
+  const normalizedText = normalizeForQuality(text).toLowerCase();
+  const normalizedTerm = sanitizeInlineText(term).toLowerCase();
+  return normalizedTerm ? normalizedText.includes(normalizedTerm) : false;
 }
 
 function splitPromptScenes(text) {
@@ -1083,7 +1325,43 @@ function pushUniqueWarning(warnings, warning) {
   if (!exists) warnings.push(warning);
 }
 
-function buildQualityTips(checks, warnings, mergedOptions) {
+function analyzeSceneIntentCoverage(scenes, requiredTerms, avoidTerms) {
+  return scenes.map((scene) => {
+    const promptBody = extractPromptBody(scene.content);
+    const source = `${scene.content}\n${promptBody}`;
+    const matchedTerms = requiredTerms.filter((term) => containsNormalizedTerm(source, term));
+    const violatedAvoidTerms = avoidTerms.filter((term) => containsNormalizedTerm(source, term));
+
+    return {
+      scene: scene.scene,
+      matchedTerms,
+      violatedAvoidTerms,
+      status: violatedAvoidTerms.length > 0
+        ? 'blocked'
+        : (requiredTerms.length > 0 && matchedTerms.length === 0 ? 'missing' : 'aligned'),
+    };
+  });
+}
+
+function analyzeScenePinCoverage(scenes, scenePins) {
+  return scenePins.map((pin) => {
+    const matchingScene = scenes.find((scene) => scene.scene === pin.scene);
+    const matchedTerms = matchingScene
+      ? pin.terms.filter((term) => containsNormalizedTerm(matchingScene.content, term))
+      : [];
+    const missingTerms = pin.terms.filter((term) => !matchedTerms.includes(term));
+
+    return {
+      scene: pin.scene,
+      instruction: pin.instruction,
+      matchedTerms,
+      missingTerms,
+      passed: Boolean(matchingScene) && missingTerms.length === 0,
+    };
+  });
+}
+
+function buildQualityTips(checks, warnings, mergedOptions, sceneIntentAnalysis = []) {
   const tips = [];
   const failedChecks = checks.filter((check) => !check.passed).map((check) => check.id);
 
@@ -1110,6 +1388,21 @@ function buildQualityTips(checks, warnings, mergedOptions) {
   if (failedChecks.includes('identity_lock')) {
     tips.push('Avoid face/skin/hair descriptions and focus on movement, outfit behavior, camera, and lighting.');
   }
+  if (failedChecks.includes('product_name_presence')) {
+    tips.push(`Mention the exact product name "${sanitizeInlineText(mergedOptions.productName)}" in the generated prompt and CTA line.`);
+  }
+  if (failedChecks.includes('user_intent_alignment')) {
+    tips.push('Reinforce the requested audience, selling points, must-include beats, and avoid-list in every relevant scene.');
+  }
+  if (failedChecks.includes('scene_pin_constraints')) {
+    tips.push('Honor the pinned scene instructions in their exact scene numbers instead of letting them drift to other scenes.');
+  }
+  if (sceneIntentAnalysis.some((item) => item.status === 'missing')) {
+    tips.push('Distribute the requested selling points or must-include beats across more scenes instead of clustering them in one place.');
+  }
+  if (sceneIntentAnalysis.some((item) => item.status === 'blocked')) {
+    tips.push('Remove banned elements from the flagged scenes before regenerating, then restate the desired tone more explicitly.');
+  }
   if (warnings.some((warning) => warning.severity === 'high')) {
     tips.push('Fix high-severity issues first before regeneration.');
   }
@@ -1133,7 +1426,7 @@ export function evaluatePromptQuality(promptText, options = {}) {
   const sceneCountCheck = createCheck(
     'scene_count',
     'Scene Count Compliance',
-    25,
+    20,
     scenes.length === expectedSceneCount ? 1 : sceneCountFraction,
     `${scenes.length}/${expectedSceneCount} scenes detected.`,
   );
@@ -1155,7 +1448,7 @@ export function evaluatePromptQuality(promptText, options = {}) {
   const structureCheck = createCheck(
     'scene_structure',
     'Scene Format Completeness',
-    20,
+    15,
     structureFraction,
     `${structureCompliantScenes}/${expectedSceneCount} scenes include Duration + Prompt lines.`,
   );
@@ -1183,7 +1476,7 @@ export function evaluatePromptQuality(promptText, options = {}) {
   const promptDepthCheck = createCheck(
     'prompt_depth',
     'Prompt Depth',
-    20,
+    15,
     promptDepthFraction,
     `${richPromptScenes}/${expectedSceneCount} scenes reach >=${minPromptWords} words.`,
   );
@@ -1246,7 +1539,7 @@ export function evaluatePromptQuality(promptText, options = {}) {
   const voiceCheck = createCheck(
     'voice_policy',
     voiceLabel ? 'Voice Line Compliance' : 'Silent Output Compliance',
-    15,
+    10,
     voiceFraction,
     voiceLabel
       ? `${compliantVoiceScenes}/${expectedSceneCount} scenes include exactly one "${voiceLabel}:" line.`
@@ -1292,6 +1585,117 @@ export function evaluatePromptQuality(promptText, options = {}) {
     });
   }
 
+  const productName = sanitizeInlineText(mergedOptions.productName);
+  const productMentionFraction = productName
+    ? (containsNormalizedTerm(normalizedPrompt, productName) ? 1 : 0)
+    : 1;
+  const productNameCheck = createCheck(
+    'product_name_presence',
+    'Product Name Mention',
+    10,
+    productMentionFraction,
+    productName
+      ? (productMentionFraction === 1
+        ? `Product name "${productName}" detected in output.`
+        : `Product name "${productName}" was not detected in output.`)
+      : 'No explicit product name requirement set.',
+  );
+
+  if (productName && productMentionFraction === 0) {
+    pushUniqueWarning(warnings, {
+      code: 'product_name_missing',
+      severity: 'high',
+      message: `Exact product name "${productName}" was not detected in the generated prompt.`,
+    });
+  }
+
+  const mustIncludeTerms = parseUserConstraintList(mergedOptions.mustInclude);
+  const sellingPointTerms = parseUserConstraintList(mergedOptions.keySellingPoints);
+  const avoidTerms = parseUserConstraintList(mergedOptions.avoidElements);
+  const scenePins = parseScenePinnedConstraints(mergedOptions.sceneMustIncludeMap, expectedSceneCount);
+  const requiredIntentTerms = [...mustIncludeTerms, ...sellingPointTerms];
+  const matchedIntentTerms = requiredIntentTerms.filter((term) => containsNormalizedTerm(normalizedPrompt, term));
+  const violatedAvoidTerms = avoidTerms.filter((term) => containsNormalizedTerm(normalizedPrompt, term));
+  const sceneIntentAnalysis = analyzeSceneIntentCoverage(scenes, requiredIntentTerms, avoidTerms);
+  const scenePinAnalysis = analyzeScenePinCoverage(scenes, scenePins);
+  const userIntentFraction = requiredIntentTerms.length === 0 && avoidTerms.length === 0
+    ? 1
+    : clampNumber(
+      ((requiredIntentTerms.length === 0 ? 1 : matchedIntentTerms.length / requiredIntentTerms.length)
+      + (avoidTerms.length === 0 ? 1 : (violatedAvoidTerms.length === 0 ? 1 : 0))) / 2,
+      0,
+      1,
+    );
+  const userIntentCheck = createCheck(
+    'user_intent_alignment',
+    'User Intent Alignment',
+    10,
+    userIntentFraction,
+    `Matched ${matchedIntentTerms.length}/${requiredIntentTerms.length} requested terms; avoid violations: ${violatedAvoidTerms.length}.`,
+  );
+
+  if (requiredIntentTerms.length > 0 && matchedIntentTerms.length < requiredIntentTerms.length) {
+    const missingTerms = requiredIntentTerms.filter((term) => !matchedIntentTerms.includes(term));
+    pushUniqueWarning(warnings, {
+      code: 'user_intent_missing',
+      severity: 'medium',
+      message: `Some requested user priorities were not reflected: ${missingTerms.join(', ')}.`,
+    });
+  }
+  if (violatedAvoidTerms.length > 0) {
+    pushUniqueWarning(warnings, {
+      code: 'avoid_terms_detected',
+      severity: 'high',
+      message: `Found banned or discouraged elements in output: ${violatedAvoidTerms.join(', ')}.`,
+    });
+  }
+
+  const scenePinFraction = scenePins.length === 0
+    ? 1
+    : scenePinAnalysis.filter((item) => item.passed).length / scenePins.length;
+  const scenePinCheck = createCheck(
+    'scene_pin_constraints',
+    'Scene Pin Compliance',
+    10,
+    scenePinFraction,
+    scenePins.length === 0
+      ? 'No scene-specific hard constraints provided.'
+      : `${scenePinAnalysis.filter((item) => item.passed).length}/${scenePins.length} scene pins satisfied.`,
+  );
+
+  scenePinAnalysis
+    .filter((item) => !item.passed)
+    .slice(0, 4)
+    .forEach((item) => {
+      pushUniqueWarning(warnings, {
+        code: 'scene_pin_missing',
+        severity: 'high',
+        message: `Scene ${item.scene} missed its pinned constraint: ${item.instruction}.`,
+      });
+    });
+
+  sceneIntentAnalysis
+    .filter((item) => requiredIntentTerms.length > 0 && item.matchedTerms.length === 0)
+    .slice(0, 4)
+    .forEach((item) => {
+      pushUniqueWarning(warnings, {
+        code: 'scene_requested_terms_missing',
+        severity: 'low',
+        message: `Scene ${item.scene} does not reflect any requested selling point or must-include beat yet.`,
+      });
+    });
+
+  sceneIntentAnalysis
+    .filter((item) => item.violatedAvoidTerms.length > 0)
+    .slice(0, 4)
+    .forEach((item) => {
+      pushUniqueWarning(warnings, {
+        code: 'scene_avoid_terms_detected',
+        severity: 'high',
+        message: `Scene ${item.scene} still contains banned or discouraged elements: ${item.violatedAvoidTerms.join(', ')}.`,
+      });
+    });
+
   const checks = [
     sceneCountCheck,
     structureCheck,
@@ -1299,11 +1703,16 @@ export function evaluatePromptQuality(promptText, options = {}) {
     negativePromptCheck,
     voiceCheck,
     identityCheck,
+    productNameCheck,
+    userIntentCheck,
+    scenePinCheck,
   ];
 
-  const score = checks.reduce((sum, check) => sum + check.score, 0);
+  const rawScore = checks.reduce((sum, check) => sum + check.score, 0);
+  const totalWeight = checks.reduce((sum, check) => sum + check.weight, 0) || 100;
+  const score = Math.round((rawScore / totalWeight) * 100);
   const status = resolveQualityStatus(score);
-  const tips = buildQualityTips(checks, warnings, mergedOptions);
+  const tips = buildQualityTips(checks, warnings, mergedOptions, sceneIntentAnalysis);
 
   return {
     score,
@@ -1313,6 +1722,19 @@ export function evaluatePromptQuality(promptText, options = {}) {
       actual: scenes.length,
     },
     checks,
+    sceneAlignment: scenes.map((scene) => {
+      const intentItem = sceneIntentAnalysis.find((item) => item.scene === scene.scene) || null;
+      const pinItem = scenePinAnalysis.find((item) => item.scene === scene.scene) || null;
+
+      return {
+        scene: scene.scene,
+        matchedTerms: intentItem?.matchedTerms || [],
+        violatedAvoidTerms: intentItem?.violatedAvoidTerms || [],
+        status: intentItem?.status || 'aligned',
+        pinnedInstruction: pinItem?.instruction || '',
+        missingPinnedTerms: pinItem?.missingTerms || [],
+      };
+    }),
     warnings: warnings.slice(0, 8),
     tips,
   };

@@ -13,6 +13,7 @@ import GrokPiStudio from './components/GrokPiStudio';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 import useGeneration from './hooks/useGeneration';
 import useAnalyzePreset from './hooks/useAnalyzePreset';
+import useAutofillOptions from './hooks/useAutofillOptions';
 import useCustomPresets from './hooks/useCustomPresets';
 import { showToast } from './lib/toastBus';
 import { USE_MOCK, getBackendCapabilities } from './services/gemini';
@@ -22,8 +23,51 @@ import { downloadJSON } from './utils/exportFormats';
 import { copyToClipboard } from './utils/copy';
 import { DEFAULT_OPTIONS } from './constants/defaultOptions';
 import { buildDefaultImageReference } from './utils/imageReferences';
+import { buildPromptInputMeta } from './utils/promptSession';
 import builtInPresets from './data/presets';
 import './App.css';
+
+function normalizePreferenceMemory(value) {
+  const source = value && typeof value === 'object' ? value : {};
+  const avoidTerms = Array.isArray(source.avoidTerms)
+    ? [...new Set(source.avoidTerms.map((item) => String(item || '').trim()).filter(Boolean))].slice(0, 8)
+    : [];
+  const steeringNotes = Array.isArray(source.steeringNotes)
+    ? [...new Set(source.steeringNotes.map((item) => String(item || '').trim()).filter(Boolean))].slice(0, 8)
+    : [];
+
+  return { avoidTerms, steeringNotes };
+}
+
+function parsePreferenceList(value, max = 8) {
+  return [...new Set(
+    String(value || '')
+      .split(/\n|,|;/)
+      .map((item) => String(item || '').trim())
+      .filter(Boolean),
+  )].slice(0, max);
+}
+
+function mergePreferenceMemory(memory, nextSignals = {}) {
+  const base = normalizePreferenceMemory(memory);
+  const nextAvoidTerms = [
+    ...base.avoidTerms,
+    ...parsePreferenceList(nextSignals.avoidElements),
+  ];
+  const nextSteeringNotes = [
+    ...base.steeringNotes,
+    ...parsePreferenceList(nextSignals.sceneMustIncludeMap),
+    ...String(nextSignals.revisionFeedback || '')
+      .split(/\n|•|-/)
+      .map((item) => String(item || '').trim())
+      .filter((item) => item.length >= 12),
+  ];
+
+  return normalizePreferenceMemory({
+    avoidTerms: nextAvoidTerms,
+    steeringNotes: nextSteeringNotes,
+  });
+}
 
 function App() {
   // Multi-file state
@@ -33,6 +77,7 @@ function App() {
 
   // Preset state
   const [selectedPreset, setSelectedPreset] = useState(null);
+  const [currentPromptMeta, setCurrentPromptMeta] = useState(null);
 
   // Advanced options (persisted + backward compatible with old system prompt key)
   const savedAdvancedOptions = useMemo(() => {
@@ -47,6 +92,9 @@ function App() {
 
   // Advanced options
   const [advancedOptions, setAdvancedOptions] = useState(savedAdvancedOptions);
+  const [preferenceMemory, setPreferenceMemory] = useState(() => (
+    normalizePreferenceMemory(getItem(KEYS.PROMPT_PREFERENCE_MEMORY, {}))
+  ));
 
   // Restore history from localStorage on first render
   const savedHistory = useMemo(() => getItem(KEYS.HISTORY, []), []);
@@ -65,7 +113,7 @@ function App() {
   const {
     prompt, setPrompt,
     quality, setQuality,
-    isLoading, progress,
+    isLoading, progress, generationStage,
     history, setHistory,
     handleGenerate,
     handleCancelGenerate,
@@ -76,6 +124,8 @@ function App() {
     imageReferences,
     initialHistory: savedHistory,
     messages: generationMessages,
+    locale: lang === 'EN' ? 'en-US' : 'id-ID',
+    onGenerationComplete: setCurrentPromptMeta,
   });
 
   // Favorites (persisted)
@@ -116,6 +166,20 @@ function App() {
     setSelectedPreset,
     setAdvancedOptions,
   });
+  const {
+    isAutofillingOptions,
+    handleAutofillEmptyFields,
+    autofillDraft,
+    applyAutofillDraft,
+    discardAutofillDraft,
+  } = useAutofillOptions({
+    capabilities,
+    files,
+    selectedPreset,
+    advancedOptions,
+    preferenceMemory,
+    setAdvancedOptions,
+  });
 
   // Cleanup previews on unmount
   const previewsRef = useRef([]);
@@ -146,6 +210,10 @@ function App() {
   useEffect(() => {
     setItem(KEYS.SETTINGS, advancedOptions);
   }, [advancedOptions]);
+
+  useEffect(() => {
+    setItem(KEYS.PROMPT_PREFERENCE_MEMORY, preferenceMemory);
+  }, [preferenceMemory]);
 
   useEffect(() => {
     let mounted = true;
@@ -209,15 +277,12 @@ function App() {
     showToast(t('favoritesCleared'), 'info');
   }, [t]);
 
-  const handleRegenerate = useCallback(() => {
-    handleGenerate();
-  }, [handleGenerate]);
-
   const handleSelectHistory = useCallback((index) => {
     const item = history[index];
     if (item) {
       setPrompt(item.prompt);
       setQuality(item.quality || null);
+      setCurrentPromptMeta(item.meta || null);
       if (item.preset) {
         const restoredPreset = allPresets.find((preset) => preset.id === item.preset.id) || item.preset;
         setSelectedPreset(restoredPreset);
@@ -232,6 +297,7 @@ function App() {
     if (!item) return;
     setPrompt(item.prompt);
     setQuality(item.quality || null);
+    setCurrentPromptMeta(item.meta || null);
     if (item.preset) {
       const restoredPreset = allPresets.find((preset) => preset.id === item.preset.id) || item.preset;
       setSelectedPreset(restoredPreset);
@@ -240,6 +306,89 @@ function App() {
       setAdvancedOptions({ ...DEFAULT_OPTIONS, ...item.options });
     }
   }, [allPresets, setPrompt, setQuality]);
+
+  const handlePromptChange = useCallback((nextPrompt) => {
+    setPrompt(nextPrompt);
+    setQuality(null);
+    setCurrentPromptMeta((prev) => (
+      prev ? { ...prev, edited: true } : prev
+    ));
+  }, [setPrompt, setQuality]);
+
+  const currentInputMeta = useMemo(
+    () => buildPromptInputMeta(files, imageReferences),
+    [files, imageReferences],
+  );
+  const buildLearnedOptionOverrides = useCallback(() => {
+    const mergedMemory = mergePreferenceMemory(preferenceMemory, {
+      avoidElements: advancedOptions.avoidElements,
+    });
+
+    return {
+      learnedAvoidElements: mergedMemory.avoidTerms,
+      learnedSteeringNotes: mergedMemory.steeringNotes,
+    };
+  }, [advancedOptions.avoidElements, preferenceMemory]);
+
+  const runGenerate = useCallback((generationOverrides = {}) => {
+    const safeOverrides = generationOverrides && typeof generationOverrides === 'object' && !('nativeEvent' in generationOverrides)
+      && !('target' in generationOverrides)
+      ? generationOverrides
+      : {};
+
+    const nextSignals = {
+      avoidElements: safeOverrides.avoidElements ?? advancedOptions.avoidElements,
+      sceneMustIncludeMap: safeOverrides.sceneMustIncludeMap ?? advancedOptions.sceneMustIncludeMap,
+      revisionFeedback: safeOverrides.revisionFeedback || '',
+    };
+
+    setPreferenceMemory((prev) => mergePreferenceMemory(prev, nextSignals));
+
+    handleGenerate({
+      ...buildLearnedOptionOverrides(),
+      ...safeOverrides,
+    });
+  }, [
+    advancedOptions.avoidElements,
+    advancedOptions.sceneMustIncludeMap,
+    buildLearnedOptionOverrides,
+    handleGenerate,
+  ]);
+  const isProductNameValid = Boolean(String(advancedOptions.productName || '').trim());
+  const canGenerate = Boolean(files.length > 0 && selectedPreset && isProductNameValid);
+  const generateDisabledReason = !files.length
+    ? (lang === 'EN' ? 'Upload at least one reference image.' : 'Upload minimal satu foto referensi.')
+    : !selectedPreset
+      ? (lang === 'EN' ? 'Choose a preset first.' : 'Pilih preset terlebih dahulu.')
+      : !isProductNameValid
+        ? (lang === 'EN' ? 'Fill in the product name first.' : 'Isi nama produk terlebih dahulu.')
+        : '';
+  const canRegenerate = Boolean(
+    prompt && (
+      !currentPromptMeta?.signature
+      || currentPromptMeta.signature === currentInputMeta.signature
+    )
+  );
+  const regenerateWarning = !canRegenerate && prompt
+    ? (
+      lang === 'EN'
+        ? 'This prompt was generated from a different image set. Re-attach the original references before regenerating.'
+        : 'Prompt ini dibuat dari set gambar yang berbeda. Lampirkan kembali referensi aslinya sebelum regenerate.'
+    )
+    : '';
+  const handleRegenerate = () => {
+    if (!currentPromptMeta?.signature || currentPromptMeta.signature === currentInputMeta.signature) {
+      runGenerate();
+    }
+  };
+  const handleRegenerateWithFeedback = useCallback((feedback) => {
+    if (!feedback || !canRegenerate) return;
+    runGenerate({
+      revisionFeedback: String(feedback).trim(),
+      previousPromptSnapshot: String(prompt || '').trim(),
+      revisionBaseHistoryId: currentPromptMeta?.historyId || null,
+    });
+  }, [canRegenerate, currentPromptMeta?.historyId, prompt, runGenerate]);
 
   // Delete single history item
   const handleDeleteHistory = useCallback((itemId) => {
@@ -258,7 +407,8 @@ function App() {
   useKeyboardShortcuts({
     'ctrl+enter': () => {
       if (activeMenu !== 'prompt') return false;
-      handleGenerate();
+      if (!canGenerate) return false;
+      runGenerate();
     },
     'ctrl+s': () => {
       if (activeMenu !== 'prompt') return false;
@@ -294,13 +444,6 @@ function App() {
       setEditingCustomPreset(null);
     },
   });
-
-  const handlePromptChange = useCallback((nextPrompt) => {
-    setPrompt(nextPrompt);
-    setQuality(null);
-  }, [setPrompt, setQuality]);
-
-  const canGenerate = Boolean(files.length > 0 && selectedPreset);
 
   return (
     <div className="app">
@@ -395,6 +538,14 @@ function App() {
                 <AdvancedOptions
                   options={advancedOptions}
                   onChange={setAdvancedOptions}
+                  preferenceMemory={preferenceMemory}
+                  onClearPreferenceMemory={() => setPreferenceMemory({ avoidTerms: [], steeringNotes: [] })}
+                  onAutofillEmptyFields={handleAutofillEmptyFields}
+                  isAutofillingOptions={isAutofillingOptions}
+                  canAutofill={Boolean(files.length > 0 && selectedPreset && capabilities.geminiEnabled)}
+                  autofillDraft={autofillDraft}
+                  onApplyAutofillDraft={applyAutofillDraft}
+                  onDiscardAutofillDraft={discardAutofillDraft}
                 />
               </div>
             </div>
@@ -405,14 +556,17 @@ function App() {
                 prompt={prompt}
                 isLoading={isLoading}
                 progress={progress}
+                generationStage={generationStage}
                 quality={quality}
                 onRegenerate={handleRegenerate}
+                onRegenerateWithFeedback={handleRegenerateWithFeedback}
                 history={history}
                 onSelectHistory={handleSelectHistory}
                 onDeleteHistory={handleDeleteHistory}
                 onClearHistory={handleClearHistory}
                 canGenerate={canGenerate}
-                onGenerate={handleGenerate}
+                generateDisabledReason={generateDisabledReason}
+                onGenerate={runGenerate}
                 onCancelGenerate={() => handleCancelGenerate(true)}
                 onPromptChange={handlePromptChange}
                 selectedPreset={selectedPreset}
@@ -421,6 +575,11 @@ function App() {
                 onToggleFavorite={handleToggleFavorite}
                 onSelectFavorite={handleSelectFavorite}
                 onClearFavorites={handleClearFavorites}
+                currentInputMeta={currentInputMeta}
+                currentPromptMeta={currentPromptMeta}
+                canRegenerate={canRegenerate}
+                regenerateWarning={regenerateWarning}
+                preferenceMemory={preferenceMemory}
               />
             </div>
           </>

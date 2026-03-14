@@ -1,9 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { listGrokPiImages, listGrokPiVideos } from '../services/gemini';
-import { useI18n } from './useI18n';
 
 export function useGrokPiGallery(grokPiEnabled) {
-    const { t } = useI18n();
     const [images, setImages] = useState([]);
     const [videos, setVideos] = useState([]);
     const [isLoading, setIsLoading] = useState(false);

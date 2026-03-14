@@ -34,13 +34,29 @@ const DEFAULT_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5173',
     'https://prompt-affiliate.vercel.app',
 ];
+
+function collectVercelOrigins() {
+    return [
+        process.env.VERCEL_URL,
+        process.env.VERCEL_BRANCH_URL,
+        process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    ]
+        .map((host) => String(host || '').trim())
+        .filter(Boolean)
+        .map((host) => `https://${host}`);
+}
 export function parseAllowedOrigins(value) {
-    if (!value || typeof value !== 'string') return DEFAULT_ALLOWED_ORIGINS;
+    const fallbackOrigins = [...new Set([
+        ...DEFAULT_ALLOWED_ORIGINS,
+        ...collectVercelOrigins(),
+    ])];
+
+    if (!value || typeof value !== 'string') return fallbackOrigins;
     const parsed = value
         .split(',')
         .map((item) => item.trim())
         .filter(Boolean);
-    return parsed.length > 0 ? parsed : DEFAULT_ALLOWED_ORIGINS;
+    return parsed.length > 0 ? [...new Set([...parsed, ...collectVercelOrigins()])] : fallbackOrigins;
 }
 export const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
 

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { getItem, setItem, KEYS } from '../utils/localStorage';
 import { showToast } from '../lib/toastBus';
 import { useI18n } from './useI18n';
+import { getBackendAuthHeaders } from '../utils/backendAuth';
 
 // Constants
 const ACTIVE_JOB_KEY = 'grokpi_active_job_id';
@@ -80,7 +81,9 @@ export function useGrokPiAutomation({
     // Fetches job structure from our new backend queue engine
     const pollJobStatus = useCallback(async (jobId) => {
         try {
-            const resp = await fetch(`/api/grokpi/jobs/${jobId}`);
+            const resp = await fetch(`/api/grokpi/jobs/${jobId}`, {
+                headers: getBackendAuthHeaders(),
+            });
             if (!resp.ok) {
                 if (resp.status === 404) {
                     clearJob();
@@ -184,6 +187,7 @@ export function useGrokPiAutomation({
 
             const response = await fetch('/api/grokpi/jobs', {
                 method: 'POST',
+                headers: getBackendAuthHeaders(),
                 body: formData,
             });
 
@@ -211,7 +215,10 @@ export function useGrokPiAutomation({
         if (!activeJobId) return;
 
         try {
-            await fetch(`/api/grokpi/jobs/${activeJobId}/cancel`, { method: 'POST' });
+            await fetch(`/api/grokpi/jobs/${activeJobId}/cancel`, {
+                method: 'POST',
+                headers: getBackendAuthHeaders(),
+            });
             clearJob();
             setRunMessage(t('automationCancelled'));
             showToast(t('automationCancelled'), 'info');

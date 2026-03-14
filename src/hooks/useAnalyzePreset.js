@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { showToast } from '../lib/toastBus';
 import { useI18n } from './useI18n';
+import { getBackendAuthHeaders } from '../utils/backendAuth';
 
 export default function useAnalyzePreset(options) {
     const { allPresets, capabilities, setSelectedPreset, setAdvancedOptions } = options;
@@ -25,6 +26,7 @@ export default function useAnalyzePreset(options) {
 
             const response = await fetch('/api/analyze-preset', {
                 method: 'POST',
+                headers: getBackendAuthHeaders(),
                 body: formData,
             });
 

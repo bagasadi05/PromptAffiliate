@@ -10,10 +10,10 @@ export default function PresetSelector({
     onDuplicateCustom,
     onDeleteCustom,
 }) {
-    const { t } = useI18n();
+    const { t, lang } = useI18n();
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('All');
-    const [showDetail, setShowDetail] = useState(false);
+    const [dismissedPresetId, setDismissedPresetId] = useState(null);
 
     // Derive unique categories from presets
     const categories = useMemo(() => {
@@ -57,6 +57,12 @@ export default function PresetSelector({
     const isSelectedVisible = selectedPreset
         ? filteredPresets.some((preset) => preset.id === selectedPreset.id)
         : false;
+    const selectedPresetLabel = selectedPreset
+        ? (lang === 'EN'
+            ? 'Selected preset is outside the active filter. Clear search or switch category to see the card again.'
+            : 'Preset terpilih sedang berada di luar filter aktif. Hapus pencarian atau ganti kategori untuk melihat kartunya lagi.')
+        : '';
+    const showDetail = Boolean(selectedPreset && dismissedPresetId !== selectedPreset.id);
 
     return (
         <div className="preset-selector">
@@ -119,7 +125,7 @@ export default function PresetSelector({
                         className={`preset-card ${selectedPreset?.id === preset.id ? 'preset-card--selected' : ''}`}
                         onClick={() => {
                             onSelect(preset);
-                            setShowDetail(true);
+                            setDismissedPresetId(null);
                         }}
                         style={{ '--preset-color': preset.color }}
                     >
@@ -176,16 +182,21 @@ export default function PresetSelector({
             </div>
 
             {/* Detail Panel */}
-            {selectedPreset && showDetail && isSelectedVisible && (
+            {selectedPreset && showDetail && (
                 <div className="preset-detail">
                     <div className="preset-detail__header">
                         <div className="preset-detail__title">
                             <span className="preset-detail__emoji">{selectedPreset.emoji}</span>
                             <h3>{selectedPreset.name}</h3>
                         </div>
-                        <button className="btn--icon" onClick={() => setShowDetail(false)}>✕</button>
+                        <button className="btn--icon" onClick={() => setDismissedPresetId(selectedPreset.id)}>✕</button>
                     </div>
                     <div className="preset-detail__body">
+                        {!isSelectedVisible && (
+                            <div className="preset-detail__notice">
+                                {selectedPresetLabel}
+                            </div>
+                        )}
                         <div className="detail-row">
                             <span className="detail-label">{t('presetDetailVibe')}</span>
                             <span className="detail-value">{selectedPreset.vibe}</span>

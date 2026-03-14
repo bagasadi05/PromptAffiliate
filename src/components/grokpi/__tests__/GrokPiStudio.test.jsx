@@ -1,68 +1,125 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { I18nProvider } from '../../../contexts/I18nContext.jsx';
-import GrokPiStudio from '../GrokPiStudio.jsx';
+import GrokPiStudio from '../../GrokPiStudio.jsx';
 
-// Mocks for hooks and functions
-vi.mock('../../../hooks/useGrokPiAutomation.js', () => ({
-    useGrokPiAutomation: () => ({
-        isRunning: false,
-        runMessage: '',
-        steps: { prompt: { status: 'idle' }, video: { status: 'idle' } },
-        sceneJobs: [],
-        results: {},
-        activeJobId: null,
-        handleRunAutomation: vi.fn(),
-        handleCancel: vi.fn(),
-    })
-}));
+const getBackendCapabilitiesMock = vi.fn();
 
-vi.mock('../../../hooks/useGrokPiGallery.js', () => ({
-    useGrokPiGallery: () => ({
-        images: [],
-        videos: [],
-        isLoading: false,
-        hasMoreImages: false,
-        hasMoreVideos: false,
-        refreshGallery: vi.fn(),
-        loadMore: vi.fn(),
-    })
+let mockFormState;
+let mockAutomationState;
+let mockGalleryState;
+
+vi.mock('../../../services/gemini.js', () => ({
+    getBackendCapabilities: (...args) => getBackendCapabilitiesMock(...args),
 }));
 
 vi.mock('../../../hooks/useGrokPiForm.js', () => ({
-    useGrokPiForm: () => ({
-        form: { presetName: 'Standard', sceneCount: 4 },
-        referenceImagePreview: null,
-        referenceImageBlob: null,
-        handleFileChange: vi.fn(),
-        handleRemoveImage: vi.fn(),
-        handleStringArrayInput: vi.fn(),
-        setForm: vi.fn(),
-    })
+    useGrokPiForm: () => mockFormState,
 }));
+
+vi.mock('../../../hooks/useGrokPiAutomation.js', () => ({
+    useGrokPiAutomation: () => mockAutomationState,
+}));
+
+vi.mock('../../../hooks/useGrokPiGallery.js', () => ({
+    useGrokPiGallery: () => mockGalleryState,
+}));
+
+vi.mock('../GrokPiAutomationForm.jsx', () => ({
+    default: () => <div>AutomationFormMock</div>,
+}));
+
+vi.mock('../GrokPiJobStatus.jsx', () => ({
+    default: ({ grokPiEnabled }) => <div>{`JobStatus:${String(grokPiEnabled)}`}</div>,
+}));
+
+vi.mock('../GrokPiGallery.jsx', () => ({
+    default: ({ grokPiEnabled }) => <div>{`Gallery:${String(grokPiEnabled)}`}</div>,
+}));
+
+function renderWithContext(component) {
+    return render(<I18nProvider>{component}</I18nProvider>);
+}
 
 describe('GrokPiStudio Orchestrator', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+
+        getBackendCapabilitiesMock.mockResolvedValue({
+            geminiEnabled: true,
+            grokPiEnabled: true,
+        });
+
+        mockFormState = {
+            isReady: true,
+            form: { renderVideo: true },
+            selectedPreset: { id: 'p1', name: 'Preset 1' },
+            resolvedProductFocus: 'hijab',
+            normalizedAspectRatio: '9:16',
+            referenceImageBlob: null,
+            referenceImageMimeType: 'image/jpeg',
+            imageName: '',
+            setField: vi.fn(),
+            selectedPresetId: 'p1',
+            setSelectedPresetId: vi.fn(),
+            imagePreview: '',
+            handleSelectImage: vi.fn(),
+            handleClearImage: vi.fn(),
+        };
+
+        mockAutomationState = {
+            isRunning: false,
+            runMessage: '',
+            steps: {},
+            sceneJobs: [],
+            results: {},
+            activeJobId: null,
+            grokPiPrompt: '',
+            setGrokPiPrompt: vi.fn(),
+            handleRunAutomation: vi.fn(),
+            handleCancel: vi.fn(),
+            handleRegenerateScene: vi.fn(),
+        };
+
+        mockGalleryState = {
+            images: [],
+            videos: [],
+            isLoading: false,
+            hasMoreImages: false,
+            hasMoreVideos: false,
+            refreshGallery: vi.fn(),
+            loadMore: vi.fn(),
+        };
     });
 
-    const renderWithContext = (component) => {
-        return render(<I18nProvider>{component}</I18nProvider>);
-    };
+    it('renders loading state while form is not ready', () => {
+        mockFormState.isReady = false;
+        renderWithContext(<GrokPiStudio />);
 
-    it('renders the core studio components and titles', () => {
-        renderWithContext(<GrokPiStudio geminiEnabled={true} grokPiEnabled={true} />);
-
-        // Assert header exists
-        expect(screen.getByText(/GrokPI Dashboard/i)).toBeInTheDocument();
-        // Assert form exists
-        expect(screen.getByText(/Reference Photo/i)).toBeInTheDocument();
+        expect(screen.getByText('Memuat konfigurasi...')).toBeInTheDocument();
     });
 
-    it('shows warning when GrokPI backend is disabled', () => {
-        renderWithContext(<GrokPiStudio geminiEnabled={true} grokPiEnabled={false} />);
+    it('renders orchestrator sections when form is ready', async () => {
+        renderWithContext(<GrokPiStudio />);
 
-        // Since it passes grokPiEnabled down, the gallery component intercepts and shows a warning
-        expect(screen.getByText(/GrokPI backend is unavailable/i)).toBeInTheDocument();
+        expect(screen.getByText('GrokPI + Automation Queue')).toBeInTheDocument();
+        expect(screen.getByText('AutomationFormMock')).toBeInTheDocument();
+        expect(screen.getByText('JobStatus:true')).toBeInTheDocument();
+        expect(screen.getByText('Gallery:true')).toBeInTheDocument();
+        await waitFor(() => expect(getBackendCapabilitiesMock).toHaveBeenCalledTimes(1));
+    });
+
+    it('propagates disabled backend capability to child panels', async () => {
+        getBackendCapabilitiesMock.mockResolvedValue({
+            geminiEnabled: false,
+            grokPiEnabled: false,
+        });
+
+        renderWithContext(<GrokPiStudio />);
+
+        await waitFor(() => {
+            expect(screen.getByText('JobStatus:false')).toBeInTheDocument();
+            expect(screen.getByText('Gallery:false')).toBeInTheDocument();
+        });
     });
 });
