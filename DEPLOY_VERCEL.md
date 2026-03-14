@@ -65,8 +65,8 @@ Kalau Anda ingin membatasi lebih ketat, isi juga:
 
 ## Catatan Operasional
 
-- `vercel.json` saat ini menetapkan `maxDuration: 30` untuk `api/index.js`
-- Jika request AI Anda sering memakan waktu lebih lama, Anda perlu menyesuaikan strategi atau menaikkan limit sesuai plan Vercel
+- `vercel.json` saat ini menetapkan `maxDuration: 60` untuk `api/index.js`
+- Jika request AI Anda masih sering memakan waktu lebih lama, aktifkan Fluid Compute di Vercel lalu naikkan limit lagi sesuai plan Anda
 - Fitur queue BullMQ tetap lebih cocok di Render/Railway jika nanti dipakai serius
 
 ## Checklist Setelah Deploy
